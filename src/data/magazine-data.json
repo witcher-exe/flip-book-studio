@@ -1,0 +1,146 @@
+{
+  "issues": [
+    {
+      "id": "11111111-1111-4111-8111-000000000001",
+      "title": "THE LONG FORM — Issue No. 04",
+      "cover_image_url": null,
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "pages": [
+    {
+      "id": "22222222-2222-4222-8222-000000000001",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 1,
+      "title": "The Long Form",
+      "section": "Cover",
+      "content_html": "<p class=\"lede\">Issue No. 04 — Slow Media, Deep Attention</p><p>An independent quarterly about reading, craft, and the architecture of attention.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000002",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 2,
+      "title": "Masthead",
+      "section": "Front Matter",
+      "content_html": "<p>Editor-in-Chief <em>Ines Marchetti</em> · Art Director <em>Kwame Osei</em> · Photography <em>Lena Fjeld</em></p><p>Published four times a year on uncoated paper. Set in a transitional serif and a humanist sans.</p><p>Correspondence: letters@thelongform.example</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000003",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 3,
+      "title": "Editor's Note",
+      "section": "Front Matter",
+      "content_html": "<p class=\"lede\">On the pleasure of turning a page.</p><p>We spent the better part of a year asking a simple question: what does a magazine still do that a feed cannot? The answer, repeatedly, was <em>edges</em>. A page ends. A spread resolves. Attention is given a shape.</p><p>This issue collects six answers to that question — from a typographer in Lisbon to a bookbinder working out of a converted dairy in Vermont.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000004",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 4,
+      "title": "Contents",
+      "section": "Front Matter",
+      "content_html": "<p>04 — Contents</p><p>06 — The Weight of Paper</p><p>08 — Interview: Marta Reis on Typographic Silence</p><p>10 — Field Notes: A Dairy Full of Books</p><p>12 — Back Page</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000005",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 5,
+      "title": "Letters",
+      "section": "Front Matter",
+      "content_html": "<p>Readers wrote in about our piece on marginalia. A selection follows.</p><p><strong>From Osaka:</strong> \"I have never once finished a book without arguing with it in pencil.\"</p><p><strong>From Bogotá:</strong> \"You underrate the humble sticky note.\"</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000006",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 6,
+      "title": "The Weight of Paper",
+      "section": "Feature",
+      "content_html": "<p class=\"lede\">Grammage, opacity, and the physics of a satisfying turn.</p><p>Paper stock is the invisible protagonist of every printed magazine. Too light and the page flutters; too heavy and the spine fights the reader. Somewhere between 90 and 120 grams per square metre lies a corridor of grace.</p><p>Bookbinders call the sound a page makes a <em>riffle</em>. It is measurable: a dry uncoated sheet resonates around two kilohertz, a coated one considerably higher and colder.</p><p>The digital analogue of grammage is latency. A page that turns in under eighty milliseconds feels weightless and cheap. Seven hundred milliseconds feels like paper.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000007",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 7,
+      "title": "The Weight of Paper, cont.",
+      "section": "Feature",
+      "content_html": "<p>In Lisbon, a mill has been making the same laid stock since 1908. The watermark is a stork. Nobody at the mill remembers why.</p><p>What has changed is the reader. We measured dwell time across three formats and found that the physical spread held attention roughly four times longer than an equivalent scroll — not because the words were better, but because the container promised an ending.</p><p>Endings, it turns out, are a feature.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000008",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 8,
+      "title": "Marta Reis on Typographic Silence",
+      "section": "Interview",
+      "content_html": "<p class=\"lede\">The Lisbon typographer on white space, restraint, and the tyranny of the headline.</p><p><strong>TLF:</strong> You describe your work as silence.</p><p><strong>MR:</strong> A page is mostly not-ink. Designers obsess over the letterforms and forget they are arranging quiet. The reader rests in the quiet.</p><p><strong>TLF:</strong> And the headline?</p><p><strong>MR:</strong> A headline should be a doorway, not a shout. If it has to shout, the piece underneath is nervous.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000009",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 9,
+      "title": "Marta Reis, cont.",
+      "section": "Interview",
+      "content_html": "<p><strong>TLF:</strong> Does any of this survive a screen?</p><p><strong>MR:</strong> Of course. A screen is just a page with opinions. What does not survive is infinite length. Silence needs a border to be silent against.</p><p><strong>TLF:</strong> Last question. Serif or sans?</p><p><strong>MR:</strong> Both, in their correct rooms.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000010",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 10,
+      "title": "A Dairy Full of Books",
+      "section": "Field Notes",
+      "content_html": "<p class=\"lede\">Vermont, February. A bookbinder named Hollis Ward works where the milk tanks used to be.</p><p>The building still smells faintly of cold steel. Ward sews signatures by hand at a bench built from a stanchion rail, then presses them under a screw press older than the barn.</p><p>\"A book is a hinge,\" he says. \"Everything else is decoration on a hinge.\"</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000011",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 11,
+      "title": "Gallery: Twelve Spines",
+      "section": "Gallery",
+      "content_html": "<p class=\"lede\">Photographed flat, lit from one side, printed at actual size.</p><p>Twelve bindings from the Ward workshop, arranged by the year the leather was tanned. Note the drift in colour: vegetable tanning darkens on a schedule nobody controls.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000012",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 12,
+      "title": "Back Page",
+      "section": "Back Page",
+      "content_html": "<p class=\"lede\">One last thing.</p><p>Our printer leaves a small crop mark on the final sheet of every run. We have asked twice to have it removed. We are glad both times were ignored.</p><p>Next issue: noise.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    }
+  ],
+  "page_references": [
+    {
+      "id": "33333333-3333-4333-8333-000000000001",
+      "source_page_id": "22222222-2222-4222-8222-000000000003",
+      "target_page_id": "22222222-2222-4222-8222-000000000008",
+      "anchor_text": "Marta Reis on Typographic Silence"
+    },
+    {
+      "id": "33333333-3333-4333-8333-000000000002",
+      "source_page_id": "22222222-2222-4222-8222-000000000006",
+      "target_page_id": "22222222-2222-4222-8222-000000000010",
+      "anchor_text": "A Dairy Full of Books"
+    }
+  ]
+}
