@@ -164,11 +164,11 @@
   height: 100dvh;
   flex-direction: column;
   overflow: hidden;
-  background: url("./assets/Magazine_BG.png") center/cover no-repeat fixed;
+  background: url("./assets/Magazine_BG.webp") center/cover no-repeat fixed;
 }
 
 .dark .reader-shell {
-  background-image: url("./assets/Magazine_BG_dark.png");
+  background-image: url("./assets/Magazine_BG_dark.webp");
 }
 
 .reader-topbar {

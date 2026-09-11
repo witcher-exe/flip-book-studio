@@ -2,17 +2,17 @@ import { forwardRef, memo, type ReactNode } from "react";
 
 import { sanitizeHtml } from "@/lib/sanitize-html";
 import type { PageDTO } from "@/lib/magazine.types";
-import coverArt from "@/assets/cover.svg";
-import page1Art from "@/assets/page1.svg";
-import page2Art from "@/assets/page2.svg";
-import page11Art from "@/assets/page11.svg";
-import page8Art from "@/assets/page8.svg";
-import page20Art from "@/assets/page20.svg";
-import page34Art from "@/assets/page34.svg";
-import page33Art from "@/assets/page33.svg";
-import page30Art from "@/assets/page30.svg";
-import page32Art from "@/assets/page32.svg";
-import backCoverArt from "@/assets/back_cover.svg";
+import coverArt from "@/assets/cover.webp";
+import page1Art from "@/assets/page1.webp";
+import page2Art from "@/assets/page2.webp";
+import page11Art from "@/assets/page11.webp";
+import page8Art from "@/assets/page8.webp";
+import page20Art from "@/assets/page20.webp";
+import page34Art from "@/assets/page34.webp";
+import page33Art from "@/assets/page33.webp";
+import page30Art from "@/assets/page30.webp";
+import page32Art from "@/assets/page32.webp";
+import backCoverArt from "@/assets/back_cover.webp";
 
 function XrefButton({
   anchorText,
