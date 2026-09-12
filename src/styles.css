@@ -431,3 +431,50 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Interactive Page Overlay Buttons */
+.page-interactive-elem {
+  pointer-events: auto;
+  user-select: none;
+  touch-action: manipulation;
+  z-index: 25;
+}
+
+.page-interactive-elem button {
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-interactive-elem button:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.page-overlay-btn {
+  width: clamp(30px, 4.5vw, 38px);
+  height: clamp(30px, 4.5vw, 38px);
+}
+
+@media (max-width: 640px) {
+  .page-overlay-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Expanded invisible tap target for easy tapping on mobile */
+.page-overlay-btn::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 9999px;
+  pointer-events: auto;
+}
+
+.page-overlay-btn svg,
+.page-overlay-btn span {
+  pointer-events: none;
+}
+
+
+

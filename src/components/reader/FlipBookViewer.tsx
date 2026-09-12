@@ -325,6 +325,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     let toggleScheduled = false;
 
     const onTouchStartCapture = (e: TouchEvent) => {
+      if ((e.target as HTMLElement)?.closest?.('button, .page-interactive-elem, [role="dialog"]')) {
+        return;
+      }
       if (e.touches.length !== 1) return;
       const touch = e.touches[0];
       if (!touch) return;
@@ -439,44 +442,23 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     }
   };
 
-  // Prevent double-clicking on large side navigation arrows from changing pages
+  // Large side navigation arrows: speedy multi-click page flipping, exactly like bottom bar buttons,
+  // while stopping propagation on click/double-click/pointerdown so double-click NEVER triggers zoom on the stage.
   const handlePrevArrowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (arrowClickTimerRef.current.prev) {
-      clearTimeout(arrowClickTimerRef.current.prev);
-      arrowClickTimerRef.current.prev = undefined;
-      return; // Double click prevented: do not change page!
-    }
-    arrowClickTimerRef.current.prev = setTimeout(() => {
-      arrowClickTimerRef.current.prev = undefined;
-      flipPrevSafe();
-    }, 220);
+    e.preventDefault();
+    flipPrevSafe();
   };
 
   const handleNextArrowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (arrowClickTimerRef.current.next) {
-      clearTimeout(arrowClickTimerRef.current.next);
-      arrowClickTimerRef.current.next = undefined;
-      return; // Double click prevented: do not change page!
-    }
-    arrowClickTimerRef.current.next = setTimeout(() => {
-      arrowClickTimerRef.current.next = undefined;
-      flipNextSafe();
-    }, 220);
+    e.preventDefault();
+    flipNextSafe();
   };
 
   const handleArrowDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (arrowClickTimerRef.current.prev) {
-      clearTimeout(arrowClickTimerRef.current.prev);
-      arrowClickTimerRef.current.prev = undefined;
-    }
-    if (arrowClickTimerRef.current.next) {
-      clearTimeout(arrowClickTimerRef.current.next);
-      arrowClickTimerRef.current.next = undefined;
-    }
   };
 
   return (
@@ -545,18 +527,24 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         {!isMobile ? (
           <>
             <button
-              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 ${idle ? "opacity-0" : "opacity-100"}`}
+              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 cursor-pointer ${idle ? "opacity-0" : "opacity-100"}`}
               onClick={handlePrevArrowClick}
               onDoubleClick={handleArrowDoubleClick}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               aria-label="Previous page"
             >
               <ChevronLeft className="size-8 sm:size-12 text-foreground/70" />
             </button>
 
             <button
-              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 ${idle ? "opacity-0" : "opacity-100"}`}
+              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 cursor-pointer ${idle ? "opacity-0" : "opacity-100"}`}
               onClick={handleNextArrowClick}
               onDoubleClick={handleArrowDoubleClick}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               aria-label="Next page"
             >
               <ChevronRight className="size-8 sm:size-12 text-foreground/70" />

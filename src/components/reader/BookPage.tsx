@@ -13,6 +13,11 @@ import page33Art from "@/assets/page33.webp";
 import page30Art from "@/assets/page30.webp";
 import page32Art from "@/assets/page32.webp";
 import backCoverArt from "@/assets/back_cover.webp";
+import {
+  CoverPageButtons,
+  Page11Overlay,
+  Page20AudioOverlay,
+} from "./InteractiveOverlays";
 
 function XrefButton({
   anchorText,
@@ -147,6 +152,7 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
           aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
         >
           <img className="book-page__cover-art" src={coverArt} alt="" aria-hidden="true" />
+          <CoverPageButtons />
           <span className="book-page__curl" aria-hidden="true" />
         </article>
       ) : isBackCover ? (
@@ -179,6 +185,7 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
           aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
         >
           <img className="book-page__cover-art" src={page11Art} alt="" aria-hidden="true" />
+          <Page11Overlay />
           <span className="book-page__curl" aria-hidden="true" />
         </article>
       ) : isContentPage4 ? (
@@ -195,6 +202,7 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
           aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
         >
           <img className="book-page__cover-art" src={page20Art} alt="" aria-hidden="true" />
+          <Page20AudioOverlay />
           <span className="book-page__curl" aria-hidden="true" />
         </article>
       ) : isContentPage6 ? (
