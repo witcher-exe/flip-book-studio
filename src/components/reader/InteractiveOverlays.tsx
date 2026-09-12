@@ -10,6 +10,8 @@ import {
   Sparkles,
   ZoomIn,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   Dialog,
@@ -22,6 +24,41 @@ import {
   pageInteractions,
   type PersonItem,
 } from "@/config/pageInteractions";
+
+// Circular curved text badge orbiting the button
+export function CurvedTextBadge({
+  text,
+  textColor = "currentColor",
+}: {
+  text: string;
+  textColor?: string;
+}) {
+  const id = React.useId().replace(/:/g, "");
+  return (
+    <div className="absolute -inset-2.5 sm:-inset-3 pointer-events-none flex items-center justify-center select-none z-10">
+      <svg
+        viewBox="0 0 100 100"
+        className="w-full h-full animate-[spin_26s_linear_infinite]"
+        aria-hidden="true"
+      >
+        <path
+          id={`circle-path-${id}`}
+          d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+          fill="none"
+        />
+        <text
+          fill={textColor}
+          className="text-[8px] font-bold tracking-[0.22em] uppercase"
+          style={{ textShadow: "0 1px 2px rgba(255,255,255,0.4)" }}
+        >
+          <textPath href={`#circle-path-${id}`} startOffset="50%" textAnchor="middle">
+            {text}
+          </textPath>
+        </text>
+      </svg>
+    </div>
+  );
+}
 
 // Interactive wrapper that isolates mouse/touch events from page-flip without breaking React clicks
 export function PageInteractiveWrapper({
@@ -70,19 +107,21 @@ function formatEmbedUrl(rawUrl: string): string {
 }
 
 /**
- * Audio Button with Play/Pause state and pulsing visualizer
+ * Audio Button with Play/Pause state, pulsing visualizer, and curved text label
  */
 export function PageAudioButton({
   src,
   title,
   subtitle,
   className = "",
+  badgeText = "• AUDIO • LISTEN •",
   ariaLabel = "Play audio",
 }: {
   src: string;
   title: string;
   subtitle?: string;
   className?: string;
+  badgeText?: string;
   ariaLabel?: string;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -150,6 +189,12 @@ export function PageAudioButton({
 
   return (
     <div className={`relative ${className}`}>
+      {/* Curved circular label around button */}
+      <CurvedTextBadge
+        text={badgeText}
+        textColor={isPlaying ? "#10b981" : "#1b4332"}
+      />
+
       <button
         type="button"
         onClick={togglePlay}
@@ -197,7 +242,7 @@ export function PageAudioButton({
 }
 
 /**
- * Video Popup Button opening an expansive cinematic Dialog modal with embedded video player
+ * Video Popup Button with curved circular label and cinematic modal
  */
 export function PageVideoButton({
   url,
@@ -219,6 +264,9 @@ export function PageVideoButton({
 
   return (
     <div className={`relative ${className}`}>
+      {/* Curved circular label around video button */}
+      <CurvedTextBadge text="• VIDEO • WATCH •" textColor="#b91c1c" />
+
       <button
         type="button"
         onClick={(e) => {
@@ -287,7 +335,155 @@ export function PageVideoButton({
 }
 
 /**
- * Page 11 Button opening 8 Personalities Gallery with Book-Themed Styling
+ * Fullscreen Image Viewer with swipe-to-change, serial navigation, and complete background element isolation
+ */
+function FullscreenImageViewer({
+  images,
+  currentIndex,
+  onClose,
+  onChangeIndex,
+}: {
+  images: PersonItem[];
+  currentIndex: number;
+  onClose: () => void;
+  onChangeIndex: (newIndex: number) => void;
+}) {
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+
+  // Lock body scroll and keyboard arrows while active
+  useEffect(() => {
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") onChangeIndex((currentIndex + 1) % images.length);
+      if (e.key === "ArrowLeft") onChangeIndex((currentIndex - 1 + images.length) % images.length);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = origOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [currentIndex, images.length, onChangeIndex, onClose]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length === 1) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        time: Date.now(),
+      };
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (!touchStartRef.current || e.changedTouches.length === 0) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+    const dt = Date.now() - touchStartRef.current.time;
+
+    // Detect horizontal swipe to change image serially
+    if (Math.abs(dx) > 35 && dy < Math.abs(dx) * 1.2 && dt < 600) {
+      if (dx < 0) {
+        // Swipe left -> next image
+        onChangeIndex((currentIndex + 1) % images.length);
+      } else {
+        // Swipe right -> previous image
+        onChangeIndex((currentIndex - 1 + images.length) % images.length);
+      }
+    }
+    touchStartRef.current = null;
+  };
+
+  const currentPerson = images[currentIndex];
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-6 select-none touch-none animate-in fade-in duration-200 pointer-events-auto"
+      onClick={onClose}
+      onMouseDown={(e) => e.stopPropagation()}
+      onMouseUp={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
+      onTouchStart={handleTouchStart}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Top Header: Counter & Close Button */}
+      <div
+        className="absolute top-3 sm:top-5 left-4 right-4 sm:left-6 sm:right-6 z-50 flex items-center justify-between pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="text-xs sm:text-sm font-serif font-medium text-white/90 bg-black/60 px-3.5 py-1.5 rounded-full border border-white/20 backdrop-blur-sm shadow-lg">
+          {currentIndex + 1} / {images.length}
+        </span>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/25 text-white border border-white/20 transition-all cursor-pointer shadow-2xl hover:scale-110"
+          aria-label="Close full view"
+        >
+          <X className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+      </div>
+
+      {/* Serial Prev Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeIndex((currentIndex - 1 + images.length) % images.length);
+        }}
+        className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-3 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/20 transition-all cursor-pointer shadow-2xl hover:scale-110 pointer-events-auto"
+        aria-label="Previous image"
+      >
+        <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+      </button>
+
+      {/* Serial Next Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeIndex((currentIndex + 1) % images.length);
+        }}
+        className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-3 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/20 transition-all cursor-pointer shadow-2xl hover:scale-110 pointer-events-auto"
+        aria-label="Next image"
+      >
+        <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+      </button>
+
+      {/* Full-Size Uncropped Image (Clicking outside on backdrop exits fullscreen) */}
+      <div
+        className="relative max-w-[92vw] max-h-[90vh] flex items-center justify-center cursor-default pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          key={currentPerson.imageUrl}
+          src={currentPerson.imageUrl}
+          alt={`মনীষীদের অভিব্যক্তি ${currentIndex + 1}`}
+          className="max-h-[88vh] max-w-[90vw] w-auto h-auto object-contain rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-in fade-in zoom-in-95 duration-200 select-none"
+          draggable={false}
+        />
+      </div>
+
+      {/* Bottom swipe hint */}
+      <div className="absolute bottom-3 sm:bottom-5 z-40 text-[11px] sm:text-xs font-serif text-white/50 pointer-events-none">
+        Swipe left / right to change image
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/**
+ * Page 11 Button opening 8 Personalities Gallery with Book-Themed Styling and Curved Label
  */
 export function Page11PersonsButton({
   className = "",
@@ -295,23 +491,15 @@ export function Page11PersonsButton({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState<PersonItem | null>(null);
-
-  useEffect(() => {
-    if (!selectedPerson) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelectedPerson(null);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [selectedPerson]);
+  const [selectedPersonIndex, setSelectedPersonIndex] = useState<number | null>(null);
 
   const { modalTitle, modalSubtitle, persons } = pageInteractions.page11;
 
   return (
     <div className={`relative ${className}`}>
+      {/* Curved circular label around button */}
+      <CurvedTextBadge text="• PERSONS • IMAGES •" textColor="#8b2626" />
+
       <button
         type="button"
         onClick={(e) => {
@@ -339,7 +527,7 @@ export function Page11PersonsButton({
 
       {/* Book-Themed Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-4xl md:max-w-5xl lg:max-w-6xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8 bg-[#fbf7f0] dark:bg-[#1e1b18] text-[#2b261f] dark:text-[#f3eee5] border-2 border-[#d6c7b2] dark:border-[#42392f] shadow-2xl rounded-2xl">
+        <DialogContent className="w-[95vw] sm:max-w-4xl md:max-w-5xl lg:max-w-6xl max-h-[90vh] overflow-y-auto p-3 sm:p-6 md:p-8 bg-[#fbf7f0] dark:bg-[#1e1b18] text-[#2b261f] dark:text-[#f3eee5] border-2 border-[#d6c7b2] dark:border-[#42392f] shadow-2xl rounded-2xl">
           <DialogHeader className="mb-4 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2.5">
               <span className="p-1.5 rounded-lg bg-[#8b2626] text-white shadow">
@@ -365,7 +553,7 @@ export function Page11PersonsButton({
                 key={person.id}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedPerson(person);
+                  setSelectedPersonIndex(index);
                 }}
                 className="group relative flex flex-col items-center bg-white/95 dark:bg-[#27221d] border border-[#ded5c5] dark:border-[#42392e] hover:border-[#8b2626] dark:hover:border-[#e06c6c] rounded-xl p-2 sm:p-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer overflow-hidden"
               >
@@ -397,44 +585,15 @@ export function Page11PersonsButton({
         </DialogContent>
       </Dialog>
 
-      {/* Full-Screen Uncropped Image Viewer rendered into document.body */}
-      {selectedPerson && typeof document !== "undefined"
-        ? createPortal(
-            <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4 md:p-6 cursor-zoom-out animate-in fade-in duration-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedPerson(null);
-              }}
-            >
-              {/* Close Button at top-right */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPerson(null);
-                }}
-                className="absolute top-3 right-3 sm:top-5 sm:right-5 z-50 p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/25 text-white/90 hover:text-white border border-white/20 transition-all cursor-pointer shadow-2xl hover:scale-110"
-                aria-label="Close full view"
-              >
-                <X className="w-6 h-6 sm:w-7 sm:h-7" />
-              </button>
-
-              {/* Full-Size Uncropped Image */}
-              <div
-                className="relative max-w-[96vw] max-h-[96vh] flex items-center justify-center cursor-default"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <img
-                  src={selectedPerson.imageUrl}
-                  alt="Full size view"
-                  className="max-h-[95vh] max-w-[95vw] w-auto h-auto object-contain rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] select-none"
-                />
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
+      {/* Full-Screen Uncropped Image Viewer with swipe-to-change and backdrop blur */}
+      {selectedPersonIndex !== null && typeof document !== "undefined" && (
+        <FullscreenImageViewer
+          images={persons}
+          currentIndex={selectedPersonIndex}
+          onClose={() => setSelectedPersonIndex(null)}
+          onChangeIndex={(newIndex) => setSelectedPersonIndex(newIndex)}
+        />
+      )}
     </div>
   );
 }
@@ -456,6 +615,7 @@ export function CoverPageButtons() {
         src={audio.src}
         title={audio.title}
         subtitle={audio.subtitle}
+        badgeText="• AUDIO • LISTEN •"
         ariaLabel="Play cover audio"
       />
       <PageVideoButton
@@ -503,6 +663,7 @@ export function Page20AudioOverlay() {
         src={audio.src}
         title={audio.title}
         subtitle={audio.subtitle}
+        badgeText="• READ ALOUD • AUDIO •"
         ariaLabel="Read out Page 20"
       />
     </PageInteractiveWrapper>

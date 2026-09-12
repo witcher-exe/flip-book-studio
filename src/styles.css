@@ -476,20 +476,20 @@
   pointer-events: none;
 }
 
-/* Mobile view in double-page mode: place cover audio and video buttons side by side horizontally */
+/* Mobile view in double-page mode: place cover audio and video buttons side by side horizontally slightly upward */
 .reader-stage--double-mobile .cover-buttons-group {
   flex-direction: row !important;
-  gap: 8px !important;
-  top: 81% !important;
-  left: 9% !important;
+  gap: 10px !important;
+  top: 73% !important;
+  left: 8% !important;
 }
 
 @media (max-width: 767px) {
   .reader-stage:not(.reader-stage--single-mobile) .cover-buttons-group {
     flex-direction: row !important;
-    gap: 8px !important;
-    top: 81% !important;
-    left: 9% !important;
+    gap: 10px !important;
+    top: 73% !important;
+    left: 8% !important;
   }
 }
 

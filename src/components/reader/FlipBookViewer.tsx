@@ -323,6 +323,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
     let blockNextTouchEnd = false;
     let toggleScheduled = false;
+    const swipeStartRef = { current: null as { x: number; y: number; time: number } | null };
 
     const onTouchStartCapture = (e: TouchEvent) => {
       if ((e.target as HTMLElement)?.closest?.('button, .page-interactive-elem, [role="dialog"]')) {
@@ -332,6 +333,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       const touch = e.touches[0];
       if (!touch) return;
       const now = Date.now();
+      swipeStartRef.current = { x: touch.clientX, y: touch.clientY, time: now };
       const last = lastTapRef.current;
 
       if (
@@ -373,7 +375,36 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         blockNextTouchEnd = false;
         e.stopPropagation();
         e.preventDefault();
+        swipeStartRef.current = null;
+        return;
       }
+
+      // Reliable swipe handling in mobile single-page mode (fixes react-pageflip's flipPrev offset bug)
+      if (
+        swipeStartRef.current &&
+        isMobile &&
+        singlePageRef.current &&
+        zoomRef.current <= 1 &&
+        e.changedTouches.length > 0
+      ) {
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - swipeStartRef.current.x;
+        const dy = Math.abs(touch.clientY - swipeStartRef.current.y);
+        const dt = Date.now() - swipeStartRef.current.time;
+
+        if (Math.abs(dx) > 35 && dy < Math.abs(dx) * 0.8 && dt < 450) {
+          e.stopPropagation();
+          e.preventDefault();
+          if (dx > 0) {
+            // Swiping right reveals the previous page
+            flipPrevSafe();
+          } else {
+            // Swiping left reveals the next page
+            flipNextSafe();
+          }
+        }
+      }
+      swipeStartRef.current = null;
     };
 
     stage.addEventListener('touchstart', onTouchStartCapture, { capture: true });
