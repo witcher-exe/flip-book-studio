@@ -133,6 +133,13 @@ function formatEmbedUrl(rawUrl: string): string {
 /**
  * Audio Button with Play/Pause state, pulsing visualizer, and curved text label
  */
+function formatAudioTime(seconds: number): string {
+  if (isNaN(seconds) || seconds < 0) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
 export function PageAudioButton({
   src,
   title,
@@ -152,7 +159,10 @@ export function PageAudioButton({
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isSeekingRef = useRef(false);
 
   useEffect(() => {
     const audio = new Audio();
@@ -164,9 +174,32 @@ export function PageAudioButton({
       setIsLoading(false);
     };
     const onPause = () => setIsPlaying(false);
-    const onEnded = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
     const onWaiting = () => setIsLoading(true);
-    const onCanPlay = () => setIsLoading(false);
+    const onCanPlay = () => {
+      setIsLoading(false);
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+      }
+    };
+    const onLoadedMetadata = () => {
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+      }
+    };
+    const onDurationChange = () => {
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+      }
+    };
+    const onTimeUpdate = () => {
+      if (!isSeekingRef.current) {
+        setCurrentTime(audio.currentTime);
+      }
+    };
     const onError = () => {
       setIsPlaying(false);
       setIsLoading(false);
@@ -177,6 +210,9 @@ export function PageAudioButton({
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("waiting", onWaiting);
     audio.addEventListener("canplay", onCanPlay);
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("durationchange", onDurationChange);
+    audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("error", onError);
 
     audioRef.current = audio;
@@ -188,6 +224,9 @@ export function PageAudioButton({
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("waiting", onWaiting);
       audio.removeEventListener("canplay", onCanPlay);
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("durationchange", onDurationChange);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("error", onError);
       audioRef.current = null;
     };
@@ -214,7 +253,7 @@ export function PageAudioButton({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative flex items-center ${className}`}>
       {/* Curved circular label around button */}
       <CurvedTextBadge
         text={badgeText}
@@ -264,6 +303,63 @@ export function PageAudioButton({
           <span>{isPlaying ? "Playing: " : "Listen: "} {title}</span>
         </span>
       </button>
+
+      {/* Scrubber slider bar beside audio button, only visible when playing */}
+      {isPlaying && (
+        <div
+          className="absolute left-full ml-3 sm:ml-4 flex items-center gap-2 bg-[#1c1917]/92 dark:bg-[#faf7f2]/95 text-white dark:text-[#1c1917] px-3 py-1.5 rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.4)] border border-white/20 dark:border-black/15 backdrop-blur-md z-30 pointer-events-auto animate-in fade-in slide-in-from-left-2 duration-200"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onMouseUp={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
+          <span className="text-[10px] sm:text-xs font-mono font-medium opacity-90 select-none tabular-nums">
+            {formatAudioTime(currentTime)}
+          </span>
+
+          <input
+            type="range"
+            min={0}
+            max={duration > 0 ? duration : 100}
+            step={0.5}
+            value={currentTime}
+            onChange={(e) => {
+              e.stopPropagation();
+              const val = parseFloat(e.target.value);
+              setCurrentTime(val);
+              if (audioRef.current) {
+                audioRef.current.currentTime = val;
+              }
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              isSeekingRef.current = true;
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              isSeekingRef.current = false;
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              isSeekingRef.current = true;
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              isSeekingRef.current = false;
+            }}
+            className="w-16 sm:w-24 md:w-32 h-1.5 bg-white/25 dark:bg-black/20 rounded-full appearance-none cursor-pointer accent-emerald-400 focus:outline-none"
+            aria-label="Seek audio"
+          />
+
+          <span className="text-[10px] sm:text-xs font-mono font-medium opacity-70 select-none tabular-nums">
+            {formatAudioTime(duration)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
