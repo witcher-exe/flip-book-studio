@@ -215,9 +215,18 @@
   transition: filter 220ms ease;
 }
 
+.reader-stage--single-mobile .flipbook,
+.flipbook--no-shadow {
+  filter: none !important;
+}
+
 .reader-stage--cruise .flipbook {
   filter: drop-shadow(0 26px 45px oklch(0.2 0.02 62 / 0.28)) blur(1.6px);
   transform: scale(0.995);
+}
+
+.reader-stage--cruise.reader-stage--single-mobile .flipbook {
+  filter: none !important;
 }
 
 .reader-fallback {

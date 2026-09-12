@@ -8,7 +8,7 @@ import {
   useState,
   type ComponentType,
 } from "react";
-import { ChevronLeft, ChevronRight, Moon, Sun, Undo2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, RotateCw, Sun, Undo2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -42,6 +42,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const [fitWidth, setFitWidth] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const [singlePage, setSinglePage] = useState(false);
+  const [isRotated, setIsRotated] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDraggingPan, setIsDraggingPan] = useState(false);
@@ -61,6 +62,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastPointerDownRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastToggleTimeRef = useRef<number>(0);
+  // Pending double-tap: set in touchStart, consumed in touchEnd to avoid remounting HTMLFlipBook mid-gesture
+  const pendingDoubleTapRef = useRef<{ clientX: number; clientY: number } | null>(null);
 
   const totalPages = pages.length;
 
@@ -83,7 +86,10 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       const { width, height } = stage.getBoundingClientRect();
       if (width === 0 || height === 0) return;
       const spread = isMobile ? (singlePage ? 1 : 2) : 2;
-      setFitWidth(Math.floor(Math.min(width, (height / PAGE_RATIO) * spread)));
+      // In mobile double-page mode, reserve a little margin (24px) so both left and right edges are never cropped
+      const horizontalPadding = isMobile && !singlePage ? 24 : 0;
+      const safeWidth = Math.max(100, width - horizontalPadding);
+      setFitWidth(Math.floor(Math.min(safeWidth, (height / PAGE_RATIO) * spread)));
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -92,6 +98,50 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   }, [mounted, isMobile, singlePage]);
 
   const getFlip = useCallback(() => bookRef.current?.pageFlip() ?? null, []);
+
+  const flipPrevSafe = useCallback(() => {
+    const flip = getFlip();
+    if (!flip) return;
+    try {
+      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
+      const render = (flip as any).getRender?.() ?? (flip as any).render;
+      const rect = render?.getRect?.();
+      if (fc && rect) {
+        fc.flip({
+          x: rect.left + 15,
+          y: rect.top + 10,
+        });
+        return;
+      }
+    } catch {}
+    try {
+      flip.flipPrev();
+    } catch {
+      (flip as any).turnToPrevPage?.();
+    }
+  }, [getFlip]);
+
+  const flipNextSafe = useCallback(() => {
+    const flip = getFlip();
+    if (!flip) return;
+    try {
+      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
+      const render = (flip as any).getRender?.() ?? (flip as any).render;
+      const rect = render?.getRect?.();
+      if (fc && rect) {
+        fc.flip({
+          x: rect.left + rect.width - 15,
+          y: rect.top + 10,
+        });
+        return;
+      }
+    } catch {}
+    try {
+      flip.flipNext();
+    } catch {
+      (flip as any).turnToNextPage?.();
+    }
+  }, [getFlip]);
 
   const playFlipSound = useCallback(() => {
     if (!audioRef.current) return;
@@ -137,12 +187,12 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
-      if (e.key === "ArrowRight") getFlip()?.flipNext();
-      if (e.key === "ArrowLeft") getFlip()?.flipPrev();
+      if (e.key === "ArrowRight") flipNextSafe();
+      if (e.key === "ArrowLeft") flipPrevSafe();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [currentPage, getFlip, totalPages]);
+  }, [flipNextSafe, flipPrevSafe]);
 
   // Chrome fades after 3s of stillness, returns on any interaction.
   useEffect(() => {
@@ -201,7 +251,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const toggleZoomAtPoint = useCallback(
     (clientX: number, clientY: number) => {
       const now = Date.now();
-      if (now - lastToggleTimeRef.current < 450) {
+      if (now - lastToggleTimeRef.current < 800) {
         return;
       }
       lastToggleTimeRef.current = now;
@@ -212,6 +262,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           setPan({ x: 0, y: 0 });
           return;
         }
+        setIsRotated(false);
         setSinglePage((s) => !s);
         setZoom(1);
         setPan({ x: 0, y: 0 });
@@ -243,9 +294,26 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     [isMobile, zoom],
   );
 
+  const rotateScale = useMemo(() => {
+    if (!isRotated || !stageRef.current || !fitWidth) return 1;
+    const rect = stageRef.current.getBoundingClientRect();
+    const PAGE_RATIO = 777 / 550;
+    const bookHeight = (fitWidth / 2) * PAGE_RATIO;
+    // When rotated 90deg, book width maps to stage height and book height maps to stage width
+    const scaleH = (rect.height - 24) / fitWidth;
+    const scaleW = (rect.width - 24) / bookHeight;
+    const s = Math.min(scaleH, scaleW);
+    return Math.max(1, Math.min(s, 2.5));
+  }, [isRotated, fitWidth]);
+
   const onStageDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    // On mobile devices, double-tap is handled exclusively by onStageTouchStart.
+    // Synthetic mouse dblclick events from touch gestures must be ignored.
+    if (isMobile || Date.now() - lastToggleTimeRef.current < 800) {
+      return;
+    }
     toggleZoomAtPoint(e.clientX, e.clientY);
   };
 
@@ -259,11 +327,28 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         now - last.time < 380 &&
         Math.hypot(touch.clientX - last.x, touch.clientY - last.y) < 45
       ) {
+        // Double-tap detected — record the intent but do NOT change state yet.
+        // Changing singlePage here would remount HTMLFlipBook mid-gesture and
+        // cause page-flip's own touch handlers to misfire and revert the toggle.
+        pendingDoubleTapRef.current = { clientX: touch.clientX, clientY: touch.clientY };
         lastTapRef.current = null;
-        toggleZoomAtPoint(touch.clientX, touch.clientY);
+        lastPointerDownRef.current = null;
         return;
       }
       lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
+    }
+  };
+
+  const onStageTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    const pending = pendingDoubleTapRef.current;
+    if (pending) {
+      pendingDoubleTapRef.current = null;
+      // Prevent browser's own 300ms-delayed click / native zoom from firing
+      e.preventDefault();
+      // One rAF so page-flip's own touchend handler runs first, then we toggle
+      requestAnimationFrame(() => {
+        toggleZoomAtPoint(pending.clientX, pending.clientY);
+      });
     }
   };
 
@@ -335,7 +420,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     }
     arrowClickTimerRef.current.prev = setTimeout(() => {
       arrowClickTimerRef.current.prev = undefined;
-      getFlip()?.flipPrev();
+      flipPrevSafe();
     }, 220);
   };
 
@@ -348,7 +433,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     }
     arrowClickTimerRef.current.next = setTimeout(() => {
       arrowClickTimerRef.current.next = undefined;
-      getFlip()?.flipNext();
+      flipNextSafe();
     }, 220);
   };
 
@@ -390,6 +475,17 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => setIsRotated((r) => !r)}
+            disabled={singlePage}
+            aria-label={isRotated ? "Reset rotation" : "Rotate book 90 degrees"}
+            title={singlePage ? "Rotation disabled in single-page mode" : (isRotated ? "Reset rotation" : "Rotate 90°")}
+            className={`transition-colors ${isRotated ? "text-primary bg-primary/10" : ""} disabled:opacity-30 disabled:pointer-events-none`}
+          >
+            <RotateCw className={`size-4 transition-transform duration-500 ${isRotated ? "rotate-90 text-primary" : ""}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setDark((d) => !d)}
             aria-label={dark ? "Switch to light reading mode" : "Switch to dark reading mode"}
           >
@@ -406,13 +502,14 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
       <div
         ref={stageRef}
-        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}`}
+        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${isMobile && singlePage ? " reader-stage--single-mobile" : ""}`}
         style={{
           cursor: zoom > 1 ? (isDraggingPan ? "grabbing" : "grab") : undefined,
           touchAction: zoom > 1 ? "none" : undefined,
         }}
         onDoubleClick={onStageDoubleClick}
         onTouchStart={onStageTouchStart}
+        onTouchEnd={onStageTouchEnd}
         onPointerDown={onStagePointerDown}
         onPointerMove={onStagePointerMove}
         onPointerUp={onStagePointerUp}
@@ -444,12 +541,15 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           className="reader-stage__fit"
           style={{
             width: fitWidth ? `${fitWidth}px` : "100%",
-            transform:
-              zoom > 1
-                ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`
-                : undefined,
+            transform: isRotated
+              ? (zoom > 1
+                  ? `translate3d(${pan.x}px, ${pan.y}px, 0) rotate(90deg) scale(${rotateScale * zoom})`
+                  : `rotate(90deg) scale(${rotateScale})`)
+              : (zoom > 1
+                  ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`
+                  : undefined),
             transformOrigin: "center center",
-            transition: isDraggingPan ? "none" : "transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+            transition: isDraggingPan ? "none" : "transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1)",
             pointerEvents: zoom > 1 ? "none" : undefined,
             userSelect: zoom > 1 ? "none" : undefined,
           }}
@@ -459,16 +559,16 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
               <HTMLFlipBook
                 key={isMobile && singlePage ? "portrait" : "spread"}
                 ref={bookRef as never}
-                className="flipbook"
+                className={`flipbook${isMobile && singlePage ? " flipbook--no-shadow" : ""}`}
                 width={550}
                 height={777}
                 size="stretch"
-                minWidth={240}
+                minWidth={singlePage ? 1000 : isMobile ? 100 : 240}
                 maxWidth={760}
-                minHeight={340}
+                minHeight={isMobile ? 140 : 340}
                 maxHeight={1080}
-                maxShadowOpacity={0.5}
-                drawShadow
+                maxShadowOpacity={isMobile && singlePage ? 0 : 0.5}
+                drawShadow={!(isMobile && singlePage)}
                 showCover
                 flippingTime={700}
                 mobileScrollSupport
@@ -513,7 +613,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           size="icon"
           className="size-9 sm:size-11 rounded-full shrink-0"
           aria-label="Previous page"
-          onClick={() => getFlip()?.flipPrev()}
+          onClick={flipPrevSafe}
         >
           <ChevronLeft className="size-4 sm:size-5" />
         </Button>
@@ -542,7 +642,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           size="icon"
           className="size-9 sm:size-11 rounded-full shrink-0"
           aria-label="Next page"
-          onClick={() => getFlip()?.flipNext()}
+          onClick={flipNextSafe}
         >
           <ChevronRight className="size-4 sm:size-5" />
         </Button>
