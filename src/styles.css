@@ -476,5 +476,23 @@
   pointer-events: none;
 }
 
+/* Mobile view in double-page mode: place cover audio and video buttons side by side horizontally */
+.reader-stage--double-mobile .cover-buttons-group {
+  flex-direction: row !important;
+  gap: 8px !important;
+  top: 81% !important;
+  left: 9% !important;
+}
+
+@media (max-width: 767px) {
+  .reader-stage:not(.reader-stage--single-mobile) .cover-buttons-group {
+    flex-direction: row !important;
+    gap: 8px !important;
+    top: 81% !important;
+    left: 9% !important;
+  }
+}
+
+
 
 

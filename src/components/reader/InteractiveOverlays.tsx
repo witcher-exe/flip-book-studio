@@ -446,7 +446,7 @@ export function CoverPageButtons() {
   const { audio, video } = pageInteractions.cover;
   return (
     <PageInteractiveWrapper
-      className="absolute flex flex-col gap-2 z-20"
+      className="cover-buttons-group absolute flex flex-col gap-2 z-20"
       style={{
         left: "11%",
         top: "77%",

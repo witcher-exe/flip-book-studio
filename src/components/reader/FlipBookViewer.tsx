@@ -513,7 +513,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
       <div
         ref={stageRef}
-        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${isMobile && singlePage ? " reader-stage--single-mobile" : ""}`}
+        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${isMobile && singlePage ? " reader-stage--single-mobile" : ""}${isMobile && !singlePage ? " reader-stage--double-mobile" : ""}`}
         style={{
           cursor: zoom > 1 ? (isDraggingPan ? "grabbing" : "grab") : undefined,
           touchAction: zoom > 1 ? "none" : undefined,
