@@ -358,8 +358,8 @@ export function Page11PersonsButton({
             <div className="w-full h-px bg-gradient-to-r from-transparent via-[#c4b59f] dark:via-[#524638] to-transparent my-2" />
           </DialogHeader>
 
-          {/* Responsive Gallery Grid of 8 Persons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Responsive Gallery Grid of 8 Persons (4 rows and 2 columns on mobile) */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
             {persons.map((person, index) => (
               <div
                 key={person.id}
@@ -367,7 +367,7 @@ export function Page11PersonsButton({
                   e.stopPropagation();
                   setSelectedPerson(person);
                 }}
-                className="group relative flex flex-col items-center bg-white/95 dark:bg-[#27221d] border border-[#ded5c5] dark:border-[#42392e] hover:border-[#8b2626] dark:hover:border-[#e06c6c] rounded-xl p-2.5 sm:p-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer overflow-hidden"
+                className="group relative flex flex-col items-center bg-white/95 dark:bg-[#27221d] border border-[#ded5c5] dark:border-[#42392e] hover:border-[#8b2626] dark:hover:border-[#e06c6c] rounded-xl p-2 sm:p-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer overflow-hidden"
               >
                 {/* Image display with proper aspect ratio */}
                 <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-[#f5efe4] dark:bg-[#181512] flex items-center justify-center border border-[#ece4d6] dark:border-[#383025]">
