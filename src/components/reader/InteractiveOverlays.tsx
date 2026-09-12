@@ -25,36 +25,131 @@ import {
   type PersonItem,
 } from "@/config/pageInteractions";
 
-// Circular curved text badge orbiting the button
+// Circular curved text badge around the button (stationary, high-contrast, large & bold)
 export function CurvedTextBadge({
+  topText,
+  bottomText,
   text,
-  textColor = "currentColor",
+  textColor = "#1e1b18",
+  strokeColor = "#ffffff",
 }: {
-  text: string;
+  topText?: string;
+  bottomText?: string;
+  text?: string;
   textColor?: string;
+  strokeColor?: string;
 }) {
   const id = React.useId().replace(/:/g, "");
+
+  let resolvedTop = topText;
+  let resolvedBottom = bottomText;
+
+  if (!resolvedTop && text) {
+    const parts = text
+      .split("•")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      resolvedTop = parts[0];
+      resolvedBottom = parts[1];
+    } else {
+      resolvedTop = parts[0] || text;
+      resolvedBottom = "";
+    }
+  }
+
+  // Top arc: curves over the top of the button (left to right, heads pointing UP)
+  const topPath = "M 15,50 A 35,35 0 0,1 85,50";
+
+  // Bottom arc: curves under the bottom of the button (left to right, heads pointing UP)
+  const bottomPath = "M 13,50 A 37,37 0 0,0 87,50";
+
+  const topFontSize = (resolvedTop?.length || 0) > 8 ? "10.5px" : "12.5px";
+  const bottomFontSize = (resolvedBottom?.length || 0) > 8 ? "10.5px" : "12.5px";
+
   return (
-    <div className="absolute -inset-2.5 sm:-inset-3 pointer-events-none flex items-center justify-center select-none z-10">
+    <div className="absolute -inset-4 sm:-inset-5 pointer-events-none flex items-center justify-center select-none z-20">
       <svg
         viewBox="0 0 100 100"
-        className="w-full h-full animate-[spin_26s_linear_infinite]"
+        className="w-full h-full overflow-visible"
         aria-hidden="true"
       >
-        <path
-          id={`circle-path-${id}`}
-          d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
-          fill="none"
-        />
-        <text
-          fill={textColor}
-          className="text-[8px] font-bold tracking-[0.22em] uppercase"
-          style={{ textShadow: "0 1px 2px rgba(255,255,255,0.4)" }}
-        >
-          <textPath href={`#circle-path-${id}`} startOffset="50%" textAnchor="middle">
-            {text}
-          </textPath>
-        </text>
+        <defs>
+          <path id={`top-path-${id}`} d={topPath} fill="none" />
+          <path id={`bottom-path-${id}`} d={bottomPath} fill="none" />
+        </defs>
+
+        {/* Separator dots on left and right if both labels present */}
+        {resolvedTop && resolvedBottom && (
+          <>
+            <circle
+              cx="13"
+              cy="50"
+              r="2.5"
+              fill={textColor}
+              stroke={strokeColor}
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="87"
+              cy="50"
+              r="2.5"
+              fill={textColor}
+              stroke={strokeColor}
+              strokeWidth="1.5"
+            />
+          </>
+        )}
+
+        {/* Top curved text */}
+        {resolvedTop && (
+          <text
+            fill={textColor}
+            style={{
+              fontSize: topFontSize,
+              fontWeight: "900",
+              letterSpacing: "0.14em",
+              paintOrder: "stroke fill",
+              stroke: strokeColor,
+              strokeWidth: "3.5px",
+              strokeLinejoin: "round",
+              filter: "drop-shadow(0 1.5px 2px rgba(0,0,0,0.5))",
+            }}
+          >
+            <textPath
+              href={`#top-path-${id}`}
+              startOffset="50%"
+              textAnchor="middle"
+            >
+              {resolvedTop}
+            </textPath>
+          </text>
+        )}
+
+        {/* Bottom curved text */}
+        {resolvedBottom && (
+          <text
+            fill={textColor}
+            style={{
+              fontSize: bottomFontSize,
+              fontWeight: "900",
+              letterSpacing: "0.14em",
+              paintOrder: "stroke fill",
+              stroke: strokeColor,
+              strokeWidth: "3.5px",
+              strokeLinejoin: "round",
+              filter: "drop-shadow(0 1.5px 2px rgba(0,0,0,0.5))",
+            }}
+          >
+            <textPath
+              href={`#bottom-path-${id}`}
+              startOffset="50%"
+              textAnchor="middle"
+            >
+              {resolvedBottom}
+            </textPath>
+          </text>
+        )}
       </svg>
     </div>
   );
@@ -192,7 +287,7 @@ export function PageAudioButton({
       {/* Curved circular label around button */}
       <CurvedTextBadge
         text={badgeText}
-        textColor={isPlaying ? "#10b981" : "#1b4332"}
+        textColor={isPlaying ? "#059669" : "#065f46"}
       />
 
       <button
@@ -498,7 +593,7 @@ export function Page11PersonsButton({
   return (
     <div className={`relative ${className}`}>
       {/* Curved circular label around button */}
-      <CurvedTextBadge text="• PERSONS • IMAGES •" textColor="#8b2626" />
+      <CurvedTextBadge text="• IMAGES • PERSONS •" textColor="#8b2626" />
 
       <button
         type="button"
@@ -663,7 +758,7 @@ export function Page20AudioOverlay() {
         src={audio.src}
         title={audio.title}
         subtitle={audio.subtitle}
-        badgeText="• READ ALOUD • AUDIO •"
+        badgeText="• AUDIO • READ ALOUD •"
         ariaLabel="Read out Page 20"
       />
     </PageInteractiveWrapper>
