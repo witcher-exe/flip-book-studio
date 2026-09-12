@@ -62,6 +62,11 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastPointerDownRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastToggleTimeRef = useRef<number>(0);
+  // Refs to expose current state to capture-phase native event handlers
+  const singlePageRef = useRef(singlePage);
+  singlePageRef.current = singlePage;
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
 
   const totalPages = pages.length;
 
@@ -245,28 +250,16 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
   const chrome = `reader-chrome${idle ? " reader-chrome--idle" : ""}`;
 
-  // Toggle zoom at point (desktop double-click and mobile double-tap)
+  // Toggle zoom at point (desktop double-click only — mobile handled by capture listeners)
   const toggleZoomAtPoint = useCallback(
     (clientX: number, clientY: number) => {
+      if (isMobile) return; // mobile path handled by capture-phase listener below
       const now = Date.now();
       if (now - lastToggleTimeRef.current < 800) {
         return;
       }
       lastToggleTimeRef.current = now;
 
-      if (isMobile) {
-        if (zoom > 1) {
-          setZoom(1);
-          setPan({ x: 0, y: 0 });
-          return;
-        }
-        // Use explicit target value (not functional toggle) so repeat calls are idempotent
-        setIsRotated(false);
-        setSinglePage(!singlePage);
-        setZoom(1);
-        setPan({ x: 0, y: 0 });
-        return;
-      }
       if (zoom > 1) {
         setZoom(1);
         setPan({ x: 0, y: 0 });
@@ -290,12 +283,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       }
       setZoom(targetZoom);
     },
-    [isMobile, zoom, singlePage],
+    [isMobile, zoom],
   );
-
-  // Keep a ref to the latest toggleZoomAtPoint so capture-phase listeners always call the current version
-  const toggleZoomRef = useRef(toggleZoomAtPoint);
-  toggleZoomRef.current = toggleZoomAtPoint;
 
   const rotateScale = useMemo(() => {
     if (!isRotated || !stageRef.current || !fitWidth) return 1;
@@ -324,11 +313,16 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   // fire in the bubble phase (parent-last), so by then page-flip has already
   // processed the touch and its internal state interferes with our toggle.
   // Capture phase fires parent-first, letting us block the event entirely.
+  //
+  // State setters (setSinglePage, setZoom, etc.) are stable across renders.
+  // Current values are read from refs (singlePageRef, zoomRef) so there are
+  // no stale closures, no debounce conflicts, and no indirect callbacks.
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
 
     let blockNextTouchEnd = false;
+    let toggleScheduled = false;
 
     const onTouchStartCapture = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
@@ -342,18 +336,30 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         now - last.time < 380 &&
         Math.hypot(touch.clientX - last.x, touch.clientY - last.y) < 45
       ) {
-        // Double-tap! Block this touch from ever reaching page-flip.
+        // Double-tap detected — block this touch from reaching page-flip
         e.stopPropagation();
         e.preventDefault();
         blockNextTouchEnd = true;
         lastTapRef.current = null;
         lastPointerDownRef.current = null;
 
-        const cx = touch.clientX;
-        const cy = touch.clientY;
-        // Short delay so the DOM is quiet before we remount HTMLFlipBook.
-        // toggleZoomAtPoint has its own 800ms debounce, so no extra guard needed here.
-        setTimeout(() => toggleZoomRef.current(cx, cy), 60);
+        if (!toggleScheduled) {
+          toggleScheduled = true;
+          setTimeout(() => {
+            toggleScheduled = false;
+            if (zoomRef.current > 1) {
+              // Zoomed in: just reset zoom
+              setZoom(1);
+              setPan({ x: 0, y: 0 });
+            } else {
+              // Toggle single/double page mode
+              setIsRotated(false);
+              setSinglePage(!singlePageRef.current);
+              setZoom(1);
+              setPan({ x: 0, y: 0 });
+            }
+          }, 60);
+        }
       } else {
         lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
       }
