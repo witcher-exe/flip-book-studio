@@ -349,13 +349,11 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         lastTapRef.current = null;
         lastPointerDownRef.current = null;
 
-        if (now - lastToggleTimeRef.current >= 800) {
-          lastToggleTimeRef.current = now;
-          const cx = touch.clientX;
-          const cy = touch.clientY;
-          // Short delay so the DOM is quiet before we remount HTMLFlipBook
-          setTimeout(() => toggleZoomRef.current(cx, cy), 60);
-        }
+        const cx = touch.clientX;
+        const cy = touch.clientY;
+        // Short delay so the DOM is quiet before we remount HTMLFlipBook.
+        // toggleZoomAtPoint has its own 800ms debounce, so no extra guard needed here.
+        setTimeout(() => toggleZoomRef.current(cx, cy), 60);
       } else {
         lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
       }
