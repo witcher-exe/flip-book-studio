@@ -590,7 +590,15 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                 width={550}
                 height={777}
                 size="stretch"
-                minWidth={isMobile ? 100 : 240}
+                minWidth={
+                  isMobile && singlePage
+                    ? fitWidth
+                      ? Math.floor(fitWidth / 2) + 10
+                      : 315
+                    : isMobile
+                      ? 100
+                      : 240
+                }
                 maxWidth={760}
                 minHeight={isMobile ? 140 : 340}
                 maxHeight={1080}
