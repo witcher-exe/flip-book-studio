@@ -62,8 +62,6 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastPointerDownRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastToggleTimeRef = useRef<number>(0);
-  // Pending double-tap: set in touchStart, consumed in touchEnd to avoid remounting HTMLFlipBook mid-gesture
-  const pendingDoubleTapRef = useRef<{ clientX: number; clientY: number } | null>(null);
 
   const totalPages = pages.length;
 
@@ -262,8 +260,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           setPan({ x: 0, y: 0 });
           return;
         }
+        // Use explicit target value (not functional toggle) so repeat calls are idempotent
         setIsRotated(false);
-        setSinglePage((s) => !s);
+        setSinglePage(!singlePage);
         setZoom(1);
         setPan({ x: 0, y: 0 });
         return;
@@ -291,8 +290,12 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       }
       setZoom(targetZoom);
     },
-    [isMobile, zoom],
+    [isMobile, zoom, singlePage],
   );
+
+  // Keep a ref to the latest toggleZoomAtPoint so capture-phase listeners always call the current version
+  const toggleZoomRef = useRef(toggleZoomAtPoint);
+  toggleZoomRef.current = toggleZoomAtPoint;
 
   const rotateScale = useMemo(() => {
     if (!isRotated || !stageRef.current || !fitWidth) return 1;
@@ -309,48 +312,70 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const onStageDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    // On mobile devices, double-tap is handled exclusively by onStageTouchStart.
-    // Synthetic mouse dblclick events from touch gestures must be ignored.
+    // On mobile devices, double-tap is handled by capture-phase native listeners.
     if (isMobile || Date.now() - lastToggleTimeRef.current < 800) {
       return;
     }
     toggleZoomAtPoint(e.clientX, e.clientY);
   };
 
-  const onStageTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    if (e.touches.length === 1 && touch) {
+  // Capture-phase native listeners: intercept the second tap of a double-tap
+  // BEFORE page-flip's own touch handlers see it.  React synthetic handlers
+  // fire in the bubble phase (parent-last), so by then page-flip has already
+  // processed the touch and its internal state interferes with our toggle.
+  // Capture phase fires parent-first, letting us block the event entirely.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let blockNextTouchEnd = false;
+
+    const onTouchStartCapture = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      if (!touch) return;
       const now = Date.now();
       const last = lastTapRef.current;
+
       if (
         last &&
         now - last.time < 380 &&
         Math.hypot(touch.clientX - last.x, touch.clientY - last.y) < 45
       ) {
-        // Double-tap detected — record the intent but do NOT change state yet.
-        // Changing singlePage here would remount HTMLFlipBook mid-gesture and
-        // cause page-flip's own touch handlers to misfire and revert the toggle.
-        pendingDoubleTapRef.current = { clientX: touch.clientX, clientY: touch.clientY };
+        // Double-tap! Block this touch from ever reaching page-flip.
+        e.stopPropagation();
+        e.preventDefault();
+        blockNextTouchEnd = true;
         lastTapRef.current = null;
         lastPointerDownRef.current = null;
-        return;
-      }
-      lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
-    }
-  };
 
-  const onStageTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    const pending = pendingDoubleTapRef.current;
-    if (pending) {
-      pendingDoubleTapRef.current = null;
-      // Prevent browser's own 300ms-delayed click / native zoom from firing
-      e.preventDefault();
-      // One rAF so page-flip's own touchend handler runs first, then we toggle
-      requestAnimationFrame(() => {
-        toggleZoomAtPoint(pending.clientX, pending.clientY);
-      });
-    }
-  };
+        if (now - lastToggleTimeRef.current >= 800) {
+          lastToggleTimeRef.current = now;
+          const cx = touch.clientX;
+          const cy = touch.clientY;
+          // Short delay so the DOM is quiet before we remount HTMLFlipBook
+          setTimeout(() => toggleZoomRef.current(cx, cy), 60);
+        }
+      } else {
+        lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
+      }
+    };
+
+    const onTouchEndCapture = (e: TouchEvent) => {
+      if (blockNextTouchEnd) {
+        blockNextTouchEnd = false;
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
+
+    stage.addEventListener('touchstart', onTouchStartCapture, { capture: true });
+    stage.addEventListener('touchend', onTouchEndCapture, { capture: true });
+    return () => {
+      stage.removeEventListener('touchstart', onTouchStartCapture, { capture: true });
+      stage.removeEventListener('touchend', onTouchEndCapture, { capture: true });
+    };
+  }, [mounted]);
 
   // Pointer panning handlers when zoom > 1
   const onStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -508,8 +533,6 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           touchAction: zoom > 1 ? "none" : undefined,
         }}
         onDoubleClick={onStageDoubleClick}
-        onTouchStart={onStageTouchStart}
-        onTouchEnd={onStageTouchEnd}
         onPointerDown={onStagePointerDown}
         onPointerMove={onStagePointerMove}
         onPointerUp={onStagePointerUp}
