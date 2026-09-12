@@ -7,6 +7,7 @@ import person5 from "@/assets/persons/person5.webp";
 import person6 from "@/assets/persons/person6.webp";
 import person7 from "@/assets/persons/person7.webp";
 import person8 from "@/assets/persons/person8.webp";
+import coverAudioUrl from "@/assets/coverpage.mp3";
 
 export interface PersonItem {
   id: number;
@@ -48,7 +49,7 @@ export const pageInteractions: PageInteractionsConfig = {
     audio: {
       title: "Cover Audio Presentation",
       subtitle: "Introduction to Homeopathy Bangladesh",
-      src: "https://actions.google.com/sounds/v1/ambiences/daytime_forest_bonfire.ogg",
+      src: coverAudioUrl,
     },
     video: {
       title: "Featured Video Presentation",

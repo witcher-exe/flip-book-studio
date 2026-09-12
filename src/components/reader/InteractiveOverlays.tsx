@@ -25,38 +25,20 @@ import {
   type PersonItem,
 } from "@/config/pageInteractions";
 
-// Circular curved text badge around the button (stationary, high-contrast, large & bold)
+// Circular curved text badge around the button (stationary, one side only, bold, no stroke, no dots)
 export function CurvedTextBadge({
-  topText,
-  bottomText,
   text,
+  side = "top",
   textColor = "#1e1b18",
-  strokeColor = "#ffffff",
 }: {
-  topText?: string;
-  bottomText?: string;
-  text?: string;
+  text: string;
+  side?: "top" | "bottom";
   textColor?: string;
-  strokeColor?: string;
 }) {
   const id = React.useId().replace(/:/g, "");
 
-  let resolvedTop = topText;
-  let resolvedBottom = bottomText;
-
-  if (!resolvedTop && text) {
-    const parts = text
-      .split("•")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (parts.length >= 2) {
-      resolvedTop = parts[0];
-      resolvedBottom = parts[1];
-    } else {
-      resolvedTop = parts[0] || text;
-      resolvedBottom = "";
-    }
-  }
+  // Clean label string (e.g. remove any bullet symbols and extra whitespace)
+  const cleanText = text.replace(/•/g, "").trim();
 
   // Top arc: curves over the top of the button (left to right, heads pointing UP)
   const topPath = "M 15,50 A 35,35 0 0,1 85,50";
@@ -64,8 +46,9 @@ export function CurvedTextBadge({
   // Bottom arc: curves under the bottom of the button (left to right, heads pointing UP)
   const bottomPath = "M 13,50 A 37,37 0 0,0 87,50";
 
-  const topFontSize = (resolvedTop?.length || 0) > 8 ? "10.5px" : "12.5px";
-  const bottomFontSize = (resolvedBottom?.length || 0) > 8 ? "10.5px" : "12.5px";
+  const fontSize = cleanText.length > 7 ? "11px" : "13px";
+  const pathId = side === "bottom" ? `bottom-path-${id}` : `top-path-${id}`;
+  const pathD = side === "bottom" ? bottomPath : topPath;
 
   return (
     <div className="absolute -inset-4 sm:-inset-5 pointer-events-none flex items-center justify-center select-none z-20">
@@ -75,81 +58,27 @@ export function CurvedTextBadge({
         aria-hidden="true"
       >
         <defs>
-          <path id={`top-path-${id}`} d={topPath} fill="none" />
-          <path id={`bottom-path-${id}`} d={bottomPath} fill="none" />
+          <path id={pathId} d={pathD} fill="none" />
         </defs>
 
-        {/* Separator dots on left and right if both labels present */}
-        {resolvedTop && resolvedBottom && (
-          <>
-            <circle
-              cx="13"
-              cy="50"
-              r="2.5"
-              fill={textColor}
-              stroke={strokeColor}
-              strokeWidth="1.5"
-            />
-            <circle
-              cx="87"
-              cy="50"
-              r="2.5"
-              fill={textColor}
-              stroke={strokeColor}
-              strokeWidth="1.5"
-            />
-          </>
-        )}
-
-        {/* Top curved text */}
-        {resolvedTop && (
-          <text
-            fill={textColor}
-            style={{
-              fontSize: topFontSize,
-              fontWeight: "900",
-              letterSpacing: "0.14em",
-              paintOrder: "stroke fill",
-              stroke: strokeColor,
-              strokeWidth: "3.5px",
-              strokeLinejoin: "round",
-              filter: "drop-shadow(0 1.5px 2px rgba(0,0,0,0.5))",
-            }}
+        {/* Clean solid text without stroke and without dots */}
+        <text
+          fill={textColor}
+          style={{
+            fontSize,
+            fontWeight: "900",
+            letterSpacing: "0.14em",
+            filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+          }}
+        >
+          <textPath
+            href={`#${pathId}`}
+            startOffset="50%"
+            textAnchor="middle"
           >
-            <textPath
-              href={`#top-path-${id}`}
-              startOffset="50%"
-              textAnchor="middle"
-            >
-              {resolvedTop}
-            </textPath>
-          </text>
-        )}
-
-        {/* Bottom curved text */}
-        {resolvedBottom && (
-          <text
-            fill={textColor}
-            style={{
-              fontSize: bottomFontSize,
-              fontWeight: "900",
-              letterSpacing: "0.14em",
-              paintOrder: "stroke fill",
-              stroke: strokeColor,
-              strokeWidth: "3.5px",
-              strokeLinejoin: "round",
-              filter: "drop-shadow(0 1.5px 2px rgba(0,0,0,0.5))",
-            }}
-          >
-            <textPath
-              href={`#bottom-path-${id}`}
-              startOffset="50%"
-              textAnchor="middle"
-            >
-              {resolvedBottom}
-            </textPath>
-          </text>
-        )}
+            {cleanText}
+          </textPath>
+        </text>
       </svg>
     </div>
   );
@@ -209,7 +138,8 @@ export function PageAudioButton({
   title,
   subtitle,
   className = "",
-  badgeText = "• AUDIO • LISTEN •",
+  badgeText = "AUDIO",
+  badgeSide = "top",
   ariaLabel = "Play audio",
 }: {
   src: string;
@@ -217,6 +147,7 @@ export function PageAudioButton({
   subtitle?: string;
   className?: string;
   badgeText?: string;
+  badgeSide?: "top" | "bottom";
   ariaLabel?: string;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -287,6 +218,7 @@ export function PageAudioButton({
       {/* Curved circular label around button */}
       <CurvedTextBadge
         text={badgeText}
+        side={badgeSide}
         textColor={isPlaying ? "#059669" : "#065f46"}
       />
 
@@ -344,12 +276,16 @@ export function PageVideoButton({
   title,
   description,
   className = "",
+  badgeText = "VIDEO",
+  badgeSide = "bottom",
   ariaLabel = "Watch video",
 }: {
   url: string;
   title: string;
   description?: string;
   className?: string;
+  badgeText?: string;
+  badgeSide?: "top" | "bottom";
   ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -360,7 +296,7 @@ export function PageVideoButton({
   return (
     <div className={`relative ${className}`}>
       {/* Curved circular label around video button */}
-      <CurvedTextBadge text="• VIDEO • WATCH •" textColor="#b91c1c" />
+      <CurvedTextBadge text={badgeText} side={badgeSide} textColor="#b91c1c" />
 
       <button
         type="button"
@@ -593,7 +529,7 @@ export function Page11PersonsButton({
   return (
     <div className={`relative ${className}`}>
       {/* Curved circular label around button */}
-      <CurvedTextBadge text="• IMAGES • PERSONS •" textColor="#8b2626" />
+      <CurvedTextBadge text="IMAGES" side="top" textColor="#8b2626" />
 
       <button
         type="button"
@@ -662,17 +598,21 @@ export function Page11PersonsButton({
                   />
                   {/* Hover zoom cue */}
                   <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="flex items-center gap-1 text-xs font-serif font-semibold bg-[#8b2626] text-white px-2.5 py-1 rounded-full shadow-lg">
-                      <ZoomIn className="w-3.5 h-3.5" />
-                      বড় করে দেখুন
+                    <span className="text-white text-xs bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
+                      View Full
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-2 text-center">
-                  <span className="text-xs font-serif font-medium text-[#7d6e5d] dark:text-[#a89b8a]">
-                    অভিব্যক্তি #{index + 1}
-                  </span>
+                <div className="w-full text-center mt-2">
+                  <p className="font-serif font-bold text-xs sm:text-sm text-[#3b3228] dark:text-[#ede4d8] truncate">
+                    {person.name || `ব্যক্তিত্ব ${index + 1}`}
+                  </p>
+                  {person.role && (
+                    <p className="text-[11px] text-[#7a6c5b] dark:text-[#a89985] truncate font-serif">
+                      {person.role}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -700,7 +640,7 @@ export function CoverPageButtons() {
   const { audio, video } = pageInteractions.cover;
   return (
     <PageInteractiveWrapper
-      className="cover-buttons-group absolute flex flex-col gap-2 z-20"
+      className="cover-buttons-group absolute flex flex-col gap-3.5 sm:gap-4 z-20"
       style={{
         left: "11%",
         top: "77%",
@@ -710,13 +650,16 @@ export function CoverPageButtons() {
         src={audio.src}
         title={audio.title}
         subtitle={audio.subtitle}
-        badgeText="• AUDIO • LISTEN •"
+        badgeText="AUDIO"
+        badgeSide="top"
         ariaLabel="Play cover audio"
       />
       <PageVideoButton
         url={video.url}
         title={video.title}
         description={video.description}
+        badgeText="VIDEO"
+        badgeSide="bottom"
         ariaLabel="Watch cover video"
       />
     </PageInteractiveWrapper>
@@ -758,7 +701,8 @@ export function Page20AudioOverlay() {
         src={audio.src}
         title={audio.title}
         subtitle={audio.subtitle}
-        badgeText="• AUDIO • READ ALOUD •"
+        badgeText="AUDIO"
+        badgeSide="top"
         ariaLabel="Read out Page 20"
       />
     </PageInteractiveWrapper>
