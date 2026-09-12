@@ -60,6 +60,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   } | null>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastPointerDownRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const lastToggleTimeRef = useRef<number>(0);
 
   const totalPages = pages.length;
 
@@ -199,7 +200,18 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   // Toggle zoom at point (desktop double-click and mobile double-tap)
   const toggleZoomAtPoint = useCallback(
     (clientX: number, clientY: number) => {
+      const now = Date.now();
+      if (now - lastToggleTimeRef.current < 450) {
+        return;
+      }
+      lastToggleTimeRef.current = now;
+
       if (isMobile) {
+        if (zoom > 1) {
+          setZoom(1);
+          setPan({ x: 0, y: 0 });
+          return;
+        }
         setSinglePage((s) => !s);
         setZoom(1);
         setPan({ x: 0, y: 0 });
@@ -244,8 +256,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       const last = lastTapRef.current;
       if (
         last &&
-        now - last.time < 300 &&
-        Math.hypot(touch.clientX - last.x, touch.clientY - last.y) < 35
+        now - last.time < 380 &&
+        Math.hypot(touch.clientX - last.x, touch.clientY - last.y) < 45
       ) {
         lastTapRef.current = null;
         toggleZoomAtPoint(touch.clientX, touch.clientY);
@@ -260,7 +272,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     const now = Date.now();
     const last = lastPointerDownRef.current;
     const isSecondPointer =
-      last && now - last.time < 300 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 35;
+      last && now - last.time < 380 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 45;
     lastPointerDownRef.current = { time: now, x: e.clientX, y: e.clientY };
 
     if (isSecondPointer) {
@@ -269,7 +281,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       return;
     }
 
-    if (!isMobile && zoom > 1) {
+    if (zoom > 1) {
       if (e.button !== 0 && e.pointerType === "mouse") return;
       panDragRef.current = {
         startX: e.clientX,
@@ -287,7 +299,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   };
 
   const onStagePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!panDragRef.current || isMobile || zoom <= 1) return;
+    if (!panDragRef.current || zoom <= 1) return;
     const dx = e.clientX - panDragRef.current.startX;
     const dy = e.clientY - panDragRef.current.startY;
     if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
@@ -396,8 +408,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         ref={stageRef}
         className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}`}
         style={{
-          cursor: !isMobile && zoom > 1 ? (isDraggingPan ? "grabbing" : "grab") : undefined,
-          touchAction: !isMobile && zoom > 1 ? "none" : undefined,
+          cursor: zoom > 1 ? (isDraggingPan ? "grabbing" : "grab") : undefined,
+          touchAction: zoom > 1 ? "none" : undefined,
         }}
         onDoubleClick={onStageDoubleClick}
         onTouchStart={onStageTouchStart}
@@ -406,36 +418,40 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         onPointerUp={onStagePointerUp}
         onPointerCancel={onStagePointerUp}
       >
-        <button
-          className={`absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 ${idle ? "opacity-0" : "opacity-100"}`}
-          onClick={handlePrevArrowClick}
-          onDoubleClick={handleArrowDoubleClick}
-          aria-label="Previous page"
-        >
-          <ChevronLeft className="size-8 sm:size-12 text-foreground/70" />
-        </button>
+        {!isMobile ? (
+          <>
+            <button
+              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 ${idle ? "opacity-0" : "opacity-100"}`}
+              onClick={handlePrevArrowClick}
+              onDoubleClick={handleArrowDoubleClick}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="size-8 sm:size-12 text-foreground/70" />
+            </button>
 
-        <button
-          className={`absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 ${idle ? "opacity-0" : "opacity-100"}`}
-          onClick={handleNextArrowClick}
-          onDoubleClick={handleArrowDoubleClick}
-          aria-label="Next page"
-        >
-          <ChevronRight className="size-8 sm:size-12 text-foreground/70" />
-        </button>
+            <button
+              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 ${idle ? "opacity-0" : "opacity-100"}`}
+              onClick={handleNextArrowClick}
+              onDoubleClick={handleArrowDoubleClick}
+              aria-label="Next page"
+            >
+              <ChevronRight className="size-8 sm:size-12 text-foreground/70" />
+            </button>
+          </>
+        ) : null}
 
         <div
           className="reader-stage__fit"
           style={{
             width: fitWidth ? `${fitWidth}px` : "100%",
             transform:
-              !isMobile && zoom > 1
+              zoom > 1
                 ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`
                 : undefined,
             transformOrigin: "center center",
             transition: isDraggingPan ? "none" : "transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1)",
-            pointerEvents: !isMobile && zoom > 1 ? "none" : undefined,
-            userSelect: !isMobile && zoom > 1 ? "none" : undefined,
+            pointerEvents: zoom > 1 ? "none" : undefined,
+            userSelect: zoom > 1 ? "none" : undefined,
           }}
         >
           {mounted ? (
@@ -495,42 +511,40 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         <Button
           variant="outline"
           size="icon"
-          className="size-11 rounded-full"
+          className="size-9 sm:size-11 rounded-full shrink-0"
           aria-label="Previous page"
           onClick={() => getFlip()?.flipPrev()}
         >
-          <ChevronLeft className="size-5" />
+          <ChevronLeft className="size-4 sm:size-5" />
         </Button>
-        <span className="font-sans text-xs tabular-nums tracking-wide text-muted-foreground">
+        <span className="font-sans text-xs tabular-nums tracking-wide text-muted-foreground whitespace-nowrap shrink-0">
           Page {currentPage} of {totalPages}
         </span>
-        {!isMobile ? (
-          <div className="flex items-center gap-2 w-32">
-            <Slider
-              min={1}
-              max={4}
-              step={0.1}
-              value={[zoom]}
-              onValueChange={(v) => {
-                const z = v[0] ?? 1;
-                setZoom(z);
-                if (z <= 1) setPan({ x: 0, y: 0 });
-              }}
-              aria-label="Zoom level"
-            />
-            <span className="font-sans text-[10px] tabular-nums text-muted-foreground whitespace-nowrap">
-              {Math.round(zoom * 100)}%
-            </span>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-1.5 sm:gap-2 w-24 sm:w-32">
+          <Slider
+            min={1}
+            max={4}
+            step={0.1}
+            value={[zoom]}
+            onValueChange={(v) => {
+              const z = v[0] ?? 1;
+              setZoom(z);
+              if (z <= 1) setPan({ x: 0, y: 0 });
+            }}
+            aria-label="Zoom level"
+          />
+          <span className="font-sans text-[10px] tabular-nums text-muted-foreground whitespace-nowrap">
+            {Math.round(zoom * 100)}%
+          </span>
+        </div>
         <Button
           variant="outline"
           size="icon"
-          className="size-11 rounded-full"
+          className="size-9 sm:size-11 rounded-full shrink-0"
           aria-label="Next page"
           onClick={() => getFlip()?.flipNext()}
         >
-          <ChevronRight className="size-5" />
+          <ChevronRight className="size-4 sm:size-5" />
         </Button>
       </footer>
 
