@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Play,
   Pause,
@@ -296,6 +297,17 @@ export function Page11PersonsButton({
   const [open, setOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<PersonItem | null>(null);
 
+  useEffect(() => {
+    if (!selectedPerson) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedPerson(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedPerson]);
+
   const { modalTitle, modalSubtitle, persons } = pageInteractions.page11;
 
   return (
@@ -382,55 +394,47 @@ export function Page11PersonsButton({
               </div>
             ))}
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Book-Themed Lightbox / Zoom for selected person card */}
-          {selectedPerson && (
+      {/* Full-Screen Uncropped Image Viewer rendered into document.body */}
+      {selectedPerson && typeof document !== "undefined"
+        ? createPortal(
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4 md:p-6 cursor-zoom-out animate-in fade-in duration-200"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedPerson(null);
               }}
             >
+              {/* Close Button at top-right */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPerson(null);
+                }}
+                className="absolute top-3 right-3 sm:top-5 sm:right-5 z-50 p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/25 text-white/90 hover:text-white border border-white/20 transition-all cursor-pointer shadow-2xl hover:scale-110"
+                aria-label="Close full view"
+              >
+                <X className="w-6 h-6 sm:w-7 sm:h-7" />
+              </button>
+
+              {/* Full-Size Uncropped Image */}
               <div
-                className="max-w-3xl w-full bg-[#fbf7f0] dark:bg-[#1e1b18] border-2 border-[#d6c7b2] dark:border-[#42392f] rounded-2xl p-4 sm:p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
+                className="relative max-w-[96vw] max-h-[96vh] flex items-center justify-center cursor-default"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPerson(null);
-                  }}
-                  className="absolute right-3 top-3 p-1.5 rounded-full bg-[#eee5d5] dark:bg-[#2d261f] text-[#524434] dark:text-[#d4c7b5] hover:bg-[#8b2626] hover:text-white transition-colors"
-                  aria-label="Close preview"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
                 <img
                   src={selectedPerson.imageUrl}
-                  alt="Enlarged view"
-                  className="max-h-[75vh] w-auto max-w-full mx-auto rounded-xl object-contain border border-[#d6c7b2] dark:border-[#383025] shadow-lg"
+                  alt="Full size view"
+                  className="max-h-[95vh] max-w-[95vw] w-auto h-auto object-contain rounded-xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] select-none"
                 />
-
-                <div className="mt-4 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPerson(null);
-                    }}
-                    className="px-5 py-2 text-xs sm:text-sm font-serif font-semibold bg-[#8b2626] hover:bg-[#a63030] text-white rounded-lg shadow-md transition-colors"
-                  >
-                    বন্ধ করুন
-                  </button>
-                </div>
               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
