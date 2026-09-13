@@ -21,11 +21,15 @@
 
 ### 2. Fullscreen Mode Behavior
 - **Screen Coverage**: The book MUST occupy the **total top-to-bottom height of the screen** (`100vh` / `window.innerHeight`), with zero top or bottom gaps or black bars cutting into the book height.
-- **Chrome Removal / Transparency**:
+- **Chrome Removal / Floating Controls**:
   - Top header bar (`.reader-topbar`) and bottom navigation bar (`.reader-bottombar`) MUST be completely removed / hidden (`display: none !important`) in fullscreen mode.
-  - Side navigation buttons (`<` and `>`) and the floating `Exit Full Screen` button MUST be transparent / unobtrusive (`opacity-25` to `opacity-35`, fading out when idle, subtle on hover) so they do not distract from the reading experience.
+  - **Contents / Index Button**: MUST remain accessible in fullscreen mode via the floating control group at the top-right next to the exit button.
+  - **Exit Button on Mobile**: Must be clearly visible (`opacity-95`, high contrast dark background) so mobile touch users never struggle to find or tap it. On desktop, it is transparent and unobtrusive (`opacity-35` to `opacity-45`, fading out when idle).
+  - **Layout Synchronization on Exit/Enter**: Must call `flip.update()` across the resize lifecycle to ensure `PageFlip` re-centers and scales pages properly without cropping or mispositioning.
 
-### 3. Page Flip & Mobile Gestures
+### 3. Mobile Navigation & Drawers
+- **Contents Drawer (Mobile)**: The page list inside the mobile Contents Drawer must have `data-vaul-no-drag` and `touch-action: pan-y` so users can swipe up and down smoothly to scroll through all pages without `vaul` hijacking the gesture to dismiss the drawer.
 - **Swipe-to-Previous on Single Page Mobile**: Must use `(flip as any).turnToPrevPage?.()` instead of relying on `react-pageflip`'s internal portrait swipe calculation to prevent getting stuck.
 - **Mode Toggle**: Mobile users can toggle between single-page and double-page mode via the dedicated button on the bottom bar OR via double-tap gesture.
+
 

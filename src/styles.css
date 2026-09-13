@@ -171,6 +171,17 @@
   background-image: url("./assets/Magazine_BG_dark.webp");
 }
 
+:fullscreen,
+:-webkit-full-screen,
+:-moz-full-screen,
+:-ms-fullscreen {
+  background: #000000 !important;
+}
+
+:fullscreen .reader-shell,
+:-webkit-full-screen .reader-shell,
+:-moz-full-screen .reader-shell,
+:-ms-fullscreen .reader-shell,
 .reader-shell:fullscreen,
 .reader-shell:-webkit-full-screen,
 .reader-shell:-moz-full-screen,
@@ -186,13 +197,19 @@
 }
 
 /* In fullscreen mode, completely remove/hide topbar and bottombar so the book takes 100% total height of the screen */
+:fullscreen .reader-topbar,
+:-webkit-full-screen .reader-topbar,
 .reader-shell--fullscreen .reader-topbar,
 .reader-shell:fullscreen .reader-topbar,
+:fullscreen .reader-bottombar,
+:-webkit-full-screen .reader-bottombar,
 .reader-shell--fullscreen .reader-bottombar,
 .reader-shell:fullscreen .reader-bottombar {
   display: none !important;
 }
 
+:fullscreen .reader-stage,
+:-webkit-full-screen .reader-stage,
 .reader-shell--fullscreen .reader-stage,
 .reader-shell:fullscreen .reader-stage {
   height: 100vh !important;
@@ -202,6 +219,8 @@
   margin: 0 !important;
 }
 
+:fullscreen .reader-stage__fit,
+:-webkit-full-screen .reader-stage__fit,
 .reader-shell--fullscreen .reader-stage__fit,
 .reader-shell:fullscreen .reader-stage__fit {
   height: 100vh !important;
@@ -209,11 +228,6 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-}
-
-.reader-shell--fullscreen .reader-stage .flipbook,
-.reader-shell:fullscreen .reader-stage .flipbook {
-  height: 100vh !important;
 }
 
 .reader-topbar {

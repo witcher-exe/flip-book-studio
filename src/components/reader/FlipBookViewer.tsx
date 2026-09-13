@@ -92,6 +92,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     };
   }, []);
 
+  const getFlip = useCallback(() => bookRef.current?.pageFlip() ?? null, []);
+
   // Listen to native fullscreen changes on monitor/display
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -102,6 +104,34 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         (document as any).msFullscreenElement
       );
       setIsFullscreen(isFull);
+
+      // Force instant re-measurement and PageFlip layout recalculation
+      const stage = stageRef.current;
+      if (stage) {
+        const { width, height } = stage.getBoundingClientRect();
+        if (width > 0 && height > 0) {
+          const PAGE_RATIO = 777 / 550;
+          const spread = singlePageRef.current ? 1 : 2;
+          if (isFull) {
+            const screenH = window.innerHeight || height;
+            const screenW = window.innerWidth || width;
+            setFitWidth(Math.min(Math.floor((screenH / PAGE_RATIO) * spread), screenW));
+          } else {
+            const horizontalPadding = !singlePageRef.current && isMobile ? 24 : 0;
+            const safeWidth = Math.max(100, width - horizontalPadding);
+            setFitWidth(Math.floor(Math.min(safeWidth, (height / PAGE_RATIO) * spread)));
+          }
+        }
+      }
+
+      [30, 80, 200, 400].forEach((delay) => {
+        setTimeout(() => {
+          const flip = getFlip();
+          try {
+            flip?.update();
+          } catch {}
+        }, delay);
+      });
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -115,7 +145,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
-  }, []);
+  }, [isMobile, getFlip]);
 
   const togglePageMode = useCallback(() => {
     setIsRotated(false);
@@ -134,15 +164,15 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       );
 
       if (!isFull) {
-        const target = containerRef.current || document.documentElement;
-        if (target.requestFullscreen) {
-          await target.requestFullscreen();
-        } else if ((target as any).webkitRequestFullscreen) {
-          await (target as any).webkitRequestFullscreen();
-        } else if ((target as any).mozRequestFullScreen) {
-          await (target as any).mozRequestFullScreen();
-        } else if ((target as any).msRequestFullscreen) {
-          await (target as any).msRequestFullscreen();
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if ((docEl as any).webkitRequestFullscreen) {
+          await (docEl as any).webkitRequestFullscreen();
+        } else if ((docEl as any).mozRequestFullScreen) {
+          await (docEl as any).mozRequestFullScreen();
+        } else if ((docEl as any).msRequestFullscreen) {
+          await (docEl as any).msRequestFullscreen();
         }
       } else {
         if (document.exitFullscreen) {
@@ -189,7 +219,31 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     return () => observer.disconnect();
   }, [mounted, isMobile, singlePage, isFullscreen]);
 
-  const getFlip = useCallback(() => bookRef.current?.pageFlip() ?? null, []);
+  // Keep PageFlip render layout synchronized with fitWidth and fullscreen changes
+  useEffect(() => {
+    const flip = getFlip();
+    if (!flip) return;
+    const raf = requestAnimationFrame(() => {
+      try {
+        flip.update();
+      } catch {}
+    });
+    const t1 = setTimeout(() => {
+      try {
+        flip.update();
+      } catch {}
+    }, 60);
+    const t2 = setTimeout(() => {
+      try {
+        flip.update();
+      } catch {}
+    }, 200);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [fitWidth, isFullscreen, singlePage, getFlip]);
 
   const playFlipSound = useCallback(() => {
     if (!audioRef.current) return;
@@ -630,18 +684,41 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   return (
     <div className={`reader-shell${isFullscreen ? " reader-shell--fullscreen" : ""}`} ref={containerRef}>
       {isFullscreen ? (
-        <button
-          type="button"
-          onClick={toggleFullscreen}
-          className={`fixed top-3 right-3 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/25 hover:bg-black/80 text-white/50 hover:text-white border border-white/10 hover:border-white/30 text-xs font-sans font-medium tracking-wide backdrop-blur-md shadow-lg transition-all duration-300 cursor-pointer ${
-            idle ? "opacity-0 pointer-events-none" : "opacity-35 hover:opacity-100"
+        <div
+          className={`fixed top-3 right-3 z-50 flex items-center gap-2 transition-all duration-300 ${
+            isMobile
+              ? "opacity-95"
+              : idle
+                ? "opacity-0 pointer-events-none"
+                : "opacity-45 hover:opacity-100"
           }`}
-          aria-label="Exit full screen"
-          title="Exit full screen (Esc)"
         >
-          <Minimize className="size-3.5" />
-          <span>Exit Full Screen</span>
-        </button>
+          <PageIndexDropdown
+            issueId={issue.id}
+            pages={pages}
+            currentPage={currentPage}
+            onSelect={jumpWithHistory}
+            className={
+              isMobile
+                ? "bg-black/85 hover:bg-black text-white border-white/30 shadow-2xl px-3 py-1.5 text-xs font-medium"
+                : "bg-black/35 hover:bg-black/80 text-white border-white/20 hover:border-white/40 shadow-lg backdrop-blur-md text-xs font-medium"
+            }
+          />
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans font-medium tracking-wide backdrop-blur-md transition-all duration-200 cursor-pointer ${
+              isMobile
+                ? "bg-black/85 hover:bg-black text-white border border-white/30 shadow-2xl px-3.5 py-2 font-semibold"
+                : "bg-black/35 hover:bg-black/80 text-white border border-white/20 hover:border-white/40 shadow-lg"
+            }`}
+            aria-label="Exit full screen"
+            title="Exit full screen (Esc)"
+          >
+            <Minimize className="size-3.5" />
+            <span>Exit Full Screen</span>
+          </button>
+        </div>
       ) : null}
       <header className={`reader-topbar ${chrome}`}>
         <div className="min-w-0">
@@ -775,9 +852,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                       ? 100
                       : 240
                 }
-                maxWidth={isFullscreen ? 2500 : 760}
+                maxWidth={2500}
                 minHeight={isMobile ? 140 : 340}
-                maxHeight={isFullscreen ? 2500 : 1080}
+                maxHeight={2500}
                 maxShadowOpacity={singlePage ? 0 : 0.5}
                 drawShadow={!singlePage}
                 showCover
