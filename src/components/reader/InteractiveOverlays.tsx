@@ -25,33 +25,50 @@ import {
   type PersonItem,
 } from "@/config/pageInteractions";
 
-// Circular curved text badge around the button (stationary, one side only, bold, no stroke, no dots)
+// Base circular curved text badge with customizable radius, inset, and positioning
+export interface CurvedTextBadgeProps {
+  text: string;
+  side?: "top" | "bottom";
+  textColor?: string;
+  className?: string;
+  topRadius?: number;
+  bottomRadius?: number;
+  containerInset?: string;
+  fontSize?: string;
+  letterSpacing?: string;
+}
+
 export function CurvedTextBadge({
   text,
   side = "top",
   textColor = "#1e1b18",
   className = "",
-}: {
-  text: string;
-  side?: "top" | "bottom";
-  textColor?: string;
-  className?: string;
-}) {
+  topRadius = 30.5,
+  bottomRadius = 38.5,
+  containerInset = "-inset-4 sm:-inset-4.5",
+  fontSize,
+  letterSpacing = "0.14em",
+}: CurvedTextBadgeProps) {
   const id = React.useId().replace(/:/g, "");
 
-  // Clean label string (e.g. remove any bullet symbols and extra whitespace)
+  // Clean label string (remove bullet symbols and extra whitespace)
   const cleanText = text.replace(/•/g, "").trim();
 
-  // Tighter radius (28) brings the curved text snug to the button rim with minimal gap
-  const topPath = "M 22,50 A 28,28 0 0,1 78,50";
-  const bottomPath = "M 22,50 A 28,28 0 0,0 78,50";
+  // Top arc (clockwise, baseline at radius R, glyphs point UP away from button)
+  const topPath = `M ${50 - topRadius},50 A ${topRadius},${topRadius} 0 0,1 ${50 + topRadius},50`;
 
-  const fontSize = cleanText.length > 7 ? "11px" : "12.5px";
+  // Bottom arc (counter-clockwise, baseline at radius R, glyphs upright curving under button)
+  const bottomPath = `M ${50 - bottomRadius},50 A ${bottomRadius},${bottomRadius} 0 0,0 ${50 + bottomRadius},50`;
+
+  const resolvedFontSize =
+    fontSize || (cleanText.length > 7 ? "11px" : "12px");
   const pathId = side === "bottom" ? `bottom-path-${id}` : `top-path-${id}`;
   const pathD = side === "bottom" ? bottomPath : topPath;
 
   return (
-    <div className={`absolute -inset-3 sm:-inset-3.5 pointer-events-none flex items-center justify-center select-none z-20 ${className}`}>
+    <div
+      className={`absolute ${containerInset} pointer-events-none flex items-center justify-center select-none z-20 ${className}`}
+    >
       <svg
         viewBox="0 0 100 100"
         className="w-full h-full overflow-visible"
@@ -61,13 +78,13 @@ export function CurvedTextBadge({
           <path id={pathId} d={pathD} fill="none" />
         </defs>
 
-        {/* Clean solid text without stroke and without dots */}
+        {/* Clean solid text with tiny gap from button border, no overlapping */}
         <text
           fill={textColor}
           style={{
-            fontSize,
+            fontSize: resolvedFontSize,
             fontWeight: "900",
-            letterSpacing: "0.14em",
+            letterSpacing,
             filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
           }}
         >
@@ -81,6 +98,101 @@ export function CurvedTextBadge({
         </text>
       </svg>
     </div>
+  );
+}
+
+/**
+ * Audio badge - independently configured for audio buttons
+ * Has dedicated topRadius and bottomRadius to ensure a neat, tiny gap from button rim
+ */
+export function AudioCurvedBadge({
+  text = "AUDIO",
+  side = "top",
+  textColor = "#065f46",
+  className = "",
+  topRadius = 30.5,
+  bottomRadius = 38.5,
+}: {
+  text?: string;
+  side?: "top" | "bottom";
+  textColor?: string;
+  className?: string;
+  topRadius?: number;
+  bottomRadius?: number;
+}) {
+  return (
+    <CurvedTextBadge
+      text={text}
+      side={side}
+      textColor={textColor}
+      className={`audio-curved-badge ${className}`}
+      topRadius={topRadius}
+      bottomRadius={bottomRadius}
+      containerInset="-inset-4 sm:-inset-4.5"
+      fontSize="12px"
+    />
+  );
+}
+
+/**
+ * Video badge - independently configured for video buttons
+ * Tweaking audio will NEVER affect this video badge
+ */
+export function VideoCurvedBadge({
+  text = "VIDEO",
+  side = "bottom",
+  textColor = "#b91c1c",
+  className = "",
+  bottomRadius = 38.5,
+  topRadius = 30.5,
+}: {
+  text?: string;
+  side?: "top" | "bottom";
+  textColor?: string;
+  className?: string;
+  bottomRadius?: number;
+  topRadius?: number;
+}) {
+  return (
+    <CurvedTextBadge
+      text={text}
+      side={side}
+      textColor={textColor}
+      className={`video-curved-badge ${className}`}
+      topRadius={topRadius}
+      bottomRadius={bottomRadius}
+      containerInset="-inset-4 sm:-inset-4.5"
+      fontSize="11.5px"
+    />
+  );
+}
+
+/**
+ * Page 11 Persons badge - independently configured
+ */
+export function Page11CurvedBadge({
+  text = "IMAGES",
+  side = "bottom",
+  textColor = "#8b2626",
+  className = "",
+  bottomRadius = 38.5,
+}: {
+  text?: string;
+  side?: "top" | "bottom";
+  textColor?: string;
+  className?: string;
+  bottomRadius?: number;
+}) {
+  return (
+    <CurvedTextBadge
+      text={text}
+      side={side}
+      textColor={textColor}
+      className={`page11-curved-badge ${className}`}
+      bottomRadius={bottomRadius}
+      containerInset="-inset-4 sm:-inset-4.5"
+      fontSize="11.5px"
+    />
   );
 }
 
@@ -254,8 +366,8 @@ export function PageAudioButton({
 
   return (
     <div className={`relative flex items-center ${className}`}>
-      {/* Curved circular label around button */}
-      <CurvedTextBadge
+      {/* Curved circular label around button - independently tuned for Audio */}
+      <AudioCurvedBadge
         text={badgeText}
         side={badgeSide}
         textColor={isPlaying ? "#059669" : "#065f46"}
@@ -427,8 +539,8 @@ export function PageVideoButton({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Curved circular label around video button */}
-      <CurvedTextBadge text={badgeText} side={badgeSide} textColor="#b91c1c" />
+      {/* Curved circular label around video button - completely independent from Audio */}
+      <VideoCurvedBadge text={badgeText} side={badgeSide} textColor="#b91c1c" />
 
       <button
         type="button"
@@ -660,8 +772,8 @@ export function Page11PersonsButton({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Curved circular label on bottom of the button (default across desktop, fullscreen, mobile single-page) */}
-      <CurvedTextBadge text="IMAGES" side="bottom" textColor="#8b2626" className="page11-badge-curved" />
+      {/* Curved circular label on bottom of the button - completely independent */}
+      <Page11CurvedBadge text="IMAGES" side="bottom" textColor="#8b2626" className="page11-badge-curved" />
 
       {/* Straight badge on the left side beside the button ONLY in mobile dual-page mode */}
       <span className="page11-badge-side hidden absolute right-full mr-2.5 top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-black tracking-widest text-[#8b2626] select-none pointer-events-none drop-shadow-sm uppercase">

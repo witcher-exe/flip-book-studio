@@ -14,7 +14,7 @@
 ### 1. Cover Page & Audio Buttons
 - **Layout Orientation**: MUST ALWAYS be **vertically stacked** (`flex-direction: column`, with Audio on top and Video directly below).
 - **Single Exception**: ONLY in **mobile dual-page mode** (`isMobile && !singlePage` and screen width `<= 767px`), they are placed horizontally side-by-side (`flex-direction: row`).
-- **Labels**: Bold, clean circular curved SVG text badges without stroke or dots, hugging the circular button rim closely (radius 28). Audio has badge on top ("AUDIO"), Video has badge on bottom ("VIDEO").
+- **Labels**: Bold, clean circular curved SVG text badges without stroke or dots, hugging the circular button rim with a tiny clean gap. Audio, Video, and Page 11 labels are completely independent components/configs so tweaking one NEVER alters the other. Audio has badge on top ("AUDIO"), Video has badge on bottom ("VIDEO").
 - **Page 20 Audio Button**: Badge MUST be on the **bottom** ("AUDIO") to avoid overlapping page footer text.
 - **Audio Slider Scrubber**: Appears beside the audio button only while playing. Must NEVER display any black rectangle/tooltip behind it when hovering. Clicks/drags anywhere on the slider pill MUST NOT flip pages (`page-interactive-elem` with event isolation).
 
