@@ -170,6 +170,14 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       const { width, height } = stage.getBoundingClientRect();
       if (width === 0 || height === 0) return;
       const spread = singlePage ? 1 : 2;
+      if (isFullscreen) {
+        // In fullscreen mode, make the book span the total top-to-bottom height of the screen
+        const screenH = window.innerHeight || height;
+        const screenW = window.innerWidth || width;
+        const fullHeightWidth = Math.floor((screenH / PAGE_RATIO) * spread);
+        setFitWidth(Math.min(fullHeightWidth, screenW));
+        return;
+      }
       // In double-page mode on mobile, reserve a little margin (24px) so both left and right edges are never cropped
       const horizontalPadding = !singlePage && isMobile ? 24 : 0;
       const safeWidth = Math.max(100, width - horizontalPadding);
@@ -625,7 +633,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         <button
           type="button"
           onClick={toggleFullscreen}
-          className="fixed top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 text-xs font-sans font-medium tracking-wide backdrop-blur-md shadow-2xl transition-all cursor-pointer hover:scale-105 active:scale-95"
+          className={`fixed top-3 right-3 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/25 hover:bg-black/80 text-white/50 hover:text-white border border-white/10 hover:border-white/30 text-xs font-sans font-medium tracking-wide backdrop-blur-md shadow-lg transition-all duration-300 cursor-pointer ${
+            idle ? "opacity-0 pointer-events-none" : "opacity-35 hover:opacity-100"
+          }`}
           aria-label="Exit full screen"
           title="Exit full screen (Esc)"
         >
@@ -683,7 +693,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
       <div
         ref={stageRef}
-        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${singlePage ? " reader-stage--single-mobile" : " reader-stage--double-mobile"}`}
+        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${isMobile && singlePage ? " reader-stage--single-mobile" : ""}${isMobile && !singlePage ? " reader-stage--double-mobile" : ""}`}
         style={{
           cursor: zoom > 1 ? (isDraggingPan ? "grabbing" : "grab") : undefined,
           touchAction: zoom > 1 ? "none" : undefined,
@@ -697,7 +707,11 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         {!isMobile ? (
           <>
             <button
-              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 cursor-pointer ${idle ? "opacity-0" : "opacity-100"}`}
+              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full transition-all duration-300 cursor-pointer ${
+                isFullscreen
+                  ? "bg-transparent text-white/30 hover:text-white hover:bg-black/30 backdrop-blur-none"
+                  : "bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-foreground/70"
+              } ${idle ? "opacity-0 pointer-events-none" : isFullscreen ? "opacity-20 hover:opacity-90" : "opacity-100"}`}
               onClick={handlePrevArrowClick}
               onDoubleClick={handleArrowDoubleClick}
               onPointerDown={(e) => e.stopPropagation()}
@@ -705,11 +719,15 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
               onTouchStart={(e) => e.stopPropagation()}
               aria-label="Previous page"
             >
-              <ChevronLeft className="size-8 sm:size-12 text-foreground/70" />
+              <ChevronLeft className="size-8 sm:size-12" />
             </button>
 
             <button
-              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-opacity duration-300 cursor-pointer ${idle ? "opacity-0" : "opacity-100"}`}
+              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full transition-all duration-300 cursor-pointer ${
+                isFullscreen
+                  ? "bg-transparent text-white/30 hover:text-white hover:bg-black/30 backdrop-blur-none"
+                  : "bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-foreground/70"
+              } ${idle ? "opacity-0 pointer-events-none" : isFullscreen ? "opacity-20 hover:opacity-90" : "opacity-100"}`}
               onClick={handleNextArrowClick}
               onDoubleClick={handleArrowDoubleClick}
               onPointerDown={(e) => e.stopPropagation()}
@@ -717,7 +735,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
               onTouchStart={(e) => e.stopPropagation()}
               aria-label="Next page"
             >
-              <ChevronRight className="size-8 sm:size-12 text-foreground/70" />
+              <ChevronRight className="size-8 sm:size-12" />
             </button>
           </>
         ) : null}
@@ -757,9 +775,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                       ? 100
                       : 240
                 }
-                maxWidth={760}
+                maxWidth={isFullscreen ? 2500 : 760}
                 minHeight={isMobile ? 140 : 340}
-                maxHeight={1080}
+                maxHeight={isFullscreen ? 2500 : 1080}
                 maxShadowOpacity={singlePage ? 0 : 0.5}
                 drawShadow={!singlePage}
                 showCover

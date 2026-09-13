@@ -180,6 +180,40 @@
   background-image: none !important;
   width: 100vw !important;
   height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* In fullscreen mode, completely remove/hide topbar and bottombar so the book takes 100% total height of the screen */
+.reader-shell--fullscreen .reader-topbar,
+.reader-shell:fullscreen .reader-topbar,
+.reader-shell--fullscreen .reader-bottombar,
+.reader-shell:fullscreen .reader-bottombar {
+  display: none !important;
+}
+
+.reader-shell--fullscreen .reader-stage,
+.reader-shell:fullscreen .reader-stage {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.reader-shell--fullscreen .reader-stage__fit,
+.reader-shell:fullscreen .reader-stage__fit {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.reader-shell--fullscreen .reader-stage .flipbook,
+.reader-shell:fullscreen .reader-stage .flipbook {
+  height: 100vh !important;
 }
 
 .reader-topbar {
@@ -199,17 +233,6 @@
   padding: 0.75rem clamp(0.4rem, 2vw, 1rem) clamp(0.85rem, 3vw, 1.75rem);
   max-width: 100vw;
   box-sizing: border-box;
-}
-
-.reader-shell--fullscreen .reader-bottombar,
-.reader-shell:fullscreen .reader-bottombar {
-  background: rgba(18, 18, 18, 0.75);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  margin-bottom: clamp(0.4rem, 1.5vh, 1rem);
 }
 
 .reader-chrome {
@@ -501,22 +524,18 @@
   pointer-events: none;
 }
 
-/* Mobile view in double-page mode: place cover audio and video buttons side by side horizontally slightly upward */
-.reader-stage--double-mobile .cover-buttons-group {
-  flex-direction: row !important;
-  gap: 10px !important;
-  top: 73% !important;
-  left: 8% !important;
-}
-
+/* Cover page audio and video buttons:
+   MUST remain vertically stacked everywhere by default (desktop, fullscreen, single-page mobile).
+   ONLY in mobile dual-page (double-page) mode (<768px) are they placed side-by-side horizontally. */
 @media (max-width: 767px) {
-  .reader-stage:not(.reader-stage--single-mobile) .cover-buttons-group {
+  .reader-stage--double-mobile .cover-buttons-group {
     flex-direction: row !important;
     gap: 10px !important;
     top: 73% !important;
     left: 8% !important;
   }
 }
+
 
 
 
