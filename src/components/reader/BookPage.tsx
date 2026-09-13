@@ -5,19 +5,54 @@ import type { PageDTO } from "@/lib/magazine.types";
 import coverArt from "@/assets/cover.webp";
 import page1Art from "@/assets/page1.webp";
 import page2Art from "@/assets/page2.webp";
-import page11Art from "@/assets/page11.webp";
+import prefaceArt from "@/assets/preface-pg.webp";
+import presidentArt from "@/assets/president-ziaur-rahman-s-pg.webp";
+import govHealthArt from "@/assets/government-health-policy-homeopathy-front-pg.webp";
+import organonArt from "@/assets/organon-magazine.webp";
 import page8Art from "@/assets/page8.webp";
+import kidsHealth1Art from "@/assets/kids-health-front-pg.webp";
+import kidsHealth2Art from "@/assets/kids-health-second-pg.webp";
+import page11Art from "@/assets/page11.webp";
+import womanHealth1Art from "@/assets/woman-health-front-pg.webp";
+import womanHealth2Art from "@/assets/woman-health-second-pg.webp";
+import technologyArt from "@/assets/technology-homeo-pg.webp";
+import exerciseArt from "@/assets/exercise-page.webp";
+import adSoftwareArt from "@/assets/ad-page-homeo-software-coming-sooner-pg.webp";
 import page20Art from "@/assets/page20.webp";
-import page34Art from "@/assets/page34.webp";
-import page33Art from "@/assets/page33.webp";
 import page30Art from "@/assets/page30.webp";
 import page32Art from "@/assets/page32.webp";
+import page33Art from "@/assets/page33.webp";
+import page34Art from "@/assets/page34.webp";
 import backCoverArt from "@/assets/back_cover.webp";
 import {
   CoverPageButtons,
   Page11Overlay,
   Page20AudioOverlay,
 } from "./InteractiveOverlays";
+
+const PAGE_ART_MAP: Record<number, string> = {
+  1: coverArt,
+  2: page1Art,
+  3: page2Art,
+  4: prefaceArt,
+  5: presidentArt,
+  6: govHealthArt,
+  7: organonArt,
+  8: page8Art,
+  9: kidsHealth1Art,
+  10: kidsHealth2Art,
+  11: page11Art,
+  12: womanHealth1Art,
+  13: womanHealth2Art,
+  14: technologyArt,
+  15: exerciseArt,
+  16: adSoftwareArt,
+  20: page20Art,
+  30: page30Art,
+  32: page32Art,
+  33: page33Art,
+  34: page34Art,
+};
 
 function XrefButton({
   anchorText,
@@ -134,142 +169,57 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
 
   const isFrontCover = isCover && page.pageNumber === 1;
   const isBackCover = isCover && page.pageNumber === totalPages;
-  const isContentPage = page.pageNumber === 2;
-  const isContentPage2 = page.pageNumber === 3;
-  const isContentPage3 = page.pageNumber === 11;
-  const isContentPage4 = page.pageNumber === 8;
-  const isContentPage5 = page.pageNumber === 20;
-  const isContentPage6 = page.pageNumber === 34;
-  const isContentPage7 = page.pageNumber === 33;
-  const isContentPage8 = page.pageNumber === 30;
-  const isContentPage9 = page.pageNumber === 32;
+  const pageArt = isBackCover ? backCoverArt : PAGE_ART_MAP[page.pageNumber];
 
+  if (pageArt) {
+    return (
+      <div className="book-page" ref={ref} data-density={isCover ? "hard" : "soft"}>
+        <article
+          className="book-page__surface book-page__surface--cover-art"
+          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
+        >
+          <img className="book-page__cover-art" src={pageArt} alt="" aria-hidden="true" />
+          {isFrontCover && <CoverPageButtons />}
+          {page.pageNumber === 11 && <Page11Overlay />}
+          {page.pageNumber === 20 && <Page20AudioOverlay />}
+          <span className="book-page__curl" aria-hidden="true" />
+        </article>
+      </div>
+    );
+  }
   return (
     <div className="book-page" ref={ref} data-density={isCover ? "hard" : "soft"}>
-      {isFrontCover ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={coverArt} alt="" aria-hidden="true" />
-          <CoverPageButtons />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isBackCover ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={backCoverArt} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page1Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage2 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page2Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage3 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page11Art} alt="" aria-hidden="true" />
-          <Page11Overlay />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage4 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page8Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage5 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page20Art} alt="" aria-hidden="true" />
-          <Page20AudioOverlay />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage6 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page34Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage7 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page33Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage8 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page30Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : isContentPage9 ? (
-        <article
-          className="book-page__surface book-page__surface--cover-art"
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          <img className="book-page__cover-art" src={page32Art} alt="" aria-hidden="true" />
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      ) : (
-        <article
-          className={`book-page__surface${isCover ? " book-page__surface--cover" : ""}`}
-          aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
-        >
-          {background ? (
-            <img className="book-page__bg" src={background} alt="" aria-hidden="true" loading="lazy" />
-          ) : null}
+      <article
+        className={`book-page__surface${isCover ? " book-page__surface--cover" : ""}`}
+        aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
+      >
+        {background ? (
+          <img className="book-page__bg" src={background} alt="" aria-hidden="true" loading="lazy" />
+        ) : null}
 
-          <div className="book-page__body">
-            {isCover ? (
-              <>
-                <p className="book-page__kicker">{page.section}</p>
-                <h1 className="book-page__cover-title">{issueTitle}</h1>
-                <div className="book-page__content">
-                  {renderContentWithRefs(page.contentHtml, page.refs, onJump)}
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="book-page__kicker">{page.section}</p>
-                <h2 className="book-page__title">{page.title}</h2>
-                <div className="book-page__content">
-                  {renderContentWithRefs(page.contentHtml, page.refs, onJump)}
-                </div>
-              </>
-            )}
-          </div>
+        <div className="book-page__body">
+          {isCover ? (
+            <>
+              <p className="book-page__kicker">{page.section}</p>
+              <h1 className="book-page__cover-title">{issueTitle}</h1>
+              <div className="book-page__content">
+                {renderContentWithRefs(page.contentHtml, page.refs, onJump)}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="book-page__kicker">{page.section}</p>
+              <h2 className="book-page__title">{page.title}</h2>
+              <div className="book-page__content">
+                {renderContentWithRefs(page.contentHtml, page.refs, onJump)}
+              </div>
+            </>
+          )}
+        </div>
 
-          {!isCover ? <span className="book-page__folio">{page.pageNumber}</span> : null}
-          <span className="book-page__curl" aria-hidden="true" />
-        </article>
-      )}
+        {!isCover ? <span className="book-page__folio">{page.pageNumber}</span> : null}
+        <span className="book-page__curl" aria-hidden="true" />
+      </article>
     </div>
   );
 });

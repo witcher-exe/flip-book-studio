@@ -77,11 +77,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
-      { title: "The Long Form — a digital flip-book magazine" },
+      { title: "Homeopathy Bangladesh — Digital Flip-Book Magazine" },
       {
         name: "description",
-        content: "An independent quarterly you actually turn the pages of.",
+        content: "Homeopathy Bangladesh — Because Bangladesh First. An interactive digital flip-book magazine.",
       },
+      { property: "og:title", content: "Homeopathy Bangladesh" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

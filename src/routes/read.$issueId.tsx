@@ -11,16 +11,16 @@ export const Route = createFileRoute("/read/$issueId")({
   },
   head: () => ({
     meta: [
-      { title: "Read the issue — The Long Form flip-book magazine" },
+      { title: "Homeopathy Bangladesh — Digital Flip-Book Magazine" },
       {
         name: "description",
         content:
-          "Turn the pages of an independent quarterly in a real flip-book reader: swipe, riffle between distant pages, and search inside every article.",
+          "Turn the pages of Homeopathy Bangladesh in an interactive flip-book reader: swipe, search, and explore multimedia features.",
       },
-      { property: "og:title", content: "The Long Form — a flip-book magazine reader" },
+      { property: "og:title", content: "Homeopathy Bangladesh" },
       {
         property: "og:description",
-        content: "Swipe, riffle, and search your way through an editorial issue, page by page.",
+        content: "Explore Homeopathy Bangladesh page by page with audio, video, and gallery overlays.",
       },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },

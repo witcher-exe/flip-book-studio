@@ -10,16 +10,16 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "The Long Form — a digital flip-book magazine" },
+      { title: "Homeopathy Bangladesh — Digital Flip-Book Magazine" },
       {
         name: "description",
         content:
-          "An independent quarterly you actually turn the pages of. Swipe, riffle between distant pages, and search inside every article.",
+          "Homeopathy Bangladesh — Because Bangladesh First. An interactive digital flip-book magazine.",
       },
-      { property: "og:title", content: "The Long Form — a digital flip-book magazine" },
+      { property: "og:title", content: "Homeopathy Bangladesh" },
       {
         property: "og:description",
-        content: "An independent quarterly you actually turn the pages of.",
+        content: "Turn the pages of Homeopathy Bangladesh.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
