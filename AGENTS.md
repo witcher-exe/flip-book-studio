@@ -38,4 +38,8 @@
 - **Swipe-to-Previous on Single Page Mobile**: Must use `(flip as any).turnToPrevPage?.()` instead of relying on `react-pageflip`'s internal portrait swipe calculation to prevent getting stuck.
 - **Mode Toggle**: Mobile users can toggle between single-page and double-page mode via the dedicated button on the bottom bar OR via double-tap gesture.
 
+### 5. Git Staging & Commits
+- **Staging**: ALWAYS use `git add .` to stage all changes instead of specifying individual files one by one.
+- **Pushing**: Never rewrite published git history (standard commit and push to `main` only).
+
 

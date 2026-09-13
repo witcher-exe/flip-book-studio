@@ -276,9 +276,16 @@
 }
 
 .reader-stage .flipbook {
+  min-width: 0 !important;
   max-width: 100% !important;
   filter: drop-shadow(0 26px 45px oklch(0.2 0.02 62 / 0.28));
   transition: filter 220ms ease;
+}
+
+.stf__wrapper {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .reader-stage--single-mobile .flipbook,
@@ -434,11 +441,9 @@
   height: 46px;
   width: 46px;
   pointer-events: none;
-  background: linear-gradient(
-    315deg,
-    color-mix(in oklch, var(--page-ink) 14%, transparent) 0%,
-    transparent 55%
-  );
+  background: linear-gradient(315deg,
+      color-mix(in oklch, var(--page-ink) 14%, transparent) 0%,
+      transparent 55%);
   opacity: 0;
   transition: opacity 250ms ease;
 }
@@ -468,6 +473,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .reader-chrome,
   .book-page__curl,
   .reader-stage .flipbook {
@@ -554,12 +560,8 @@
   .reader-stage--double-mobile .page11-badge-curved {
     display: none !important;
   }
+
   .reader-stage--double-mobile .page11-badge-side {
     display: block !important;
   }
 }
-
-
-
-
-

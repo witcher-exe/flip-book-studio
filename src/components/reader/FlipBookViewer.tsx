@@ -142,7 +142,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           const flip = getFlip();
           try {
             flip?.update();
-          } catch {}
+          } catch { }
         }, delay);
       });
     };
@@ -240,17 +240,17 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     const raf = requestAnimationFrame(() => {
       try {
         flip.update();
-      } catch {}
+      } catch { }
     });
     const t1 = setTimeout(() => {
       try {
         flip.update();
-      } catch {}
+      } catch { }
     }, 60);
     const t2 = setTimeout(() => {
       try {
         flip.update();
-      } catch {}
+      } catch { }
     }, 200);
     return () => {
       cancelAnimationFrame(raf);
@@ -288,12 +288,12 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       sound.play().catch(() => {
         if (audioRef.current) {
           audioRef.current.currentTime = 0.4;
-          audioRef.current.play().catch(() => {});
+          audioRef.current.play().catch(() => { });
         }
       });
     } catch {
       audioRef.current.currentTime = 0.4;
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
     }
   }, []);
 
@@ -304,14 +304,14 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     try {
       flip.flipPrev();
       return;
-    } catch {}
+    } catch { }
 
     try {
       (flip as any).turnToPrevPage?.();
     } catch {
       try {
         (flip as any).turnToPage?.(Math.max(0, currentPage - 2));
-      } catch {}
+      } catch { }
     }
   }, [currentPage, getFlip]);
 
@@ -322,14 +322,14 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     try {
       flip.flipNext();
       return;
-    } catch {}
+    } catch { }
 
     try {
       (flip as any).turnToNextPage?.();
     } catch {
       try {
         (flip as any).turnToPage?.(Math.min(totalPages - 1, currentPage));
-      } catch {}
+      } catch { }
     }
   }, [currentPage, getFlip, totalPages]);
 
@@ -620,7 +620,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       setIsDraggingPan(true);
       try {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch {}
+      } catch { }
       e.stopPropagation();
     } else if (singlePageRef.current) {
       // Track drag-swipe on desktop / Chrome DevTools responsive mode
@@ -663,7 +663,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     if (panDragRef.current) {
       try {
         (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch {}
+      } catch { }
       panDragRef.current = null;
       setIsDraggingPan(false);
     }
@@ -696,15 +696,12 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           <button
             type="button"
             onClick={toggleFullscreen}
-            className={`fixed ${
-              isMobile ? "top-3 right-3" : "top-3.5 left-3.5"
-            } z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans font-medium tracking-wide backdrop-blur-md transition-all duration-300 cursor-pointer ${
-              isMobile
+            className={`fixed ${isMobile ? "top-3 right-3" : "top-3.5 left-3.5"
+              } z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans font-medium tracking-wide backdrop-blur-md transition-all duration-300 cursor-pointer ${isMobile
                 ? "bg-black/85 hover:bg-black text-white border border-white/30 shadow-2xl px-3.5 py-2 font-semibold opacity-95"
-                : `bg-black/35 hover:bg-black/80 text-white/70 hover:text-white border border-white/20 hover:border-white/40 shadow-lg ${
-                    idle ? "opacity-0 pointer-events-none" : "opacity-45 hover:opacity-100"
-                  }`
-            }`}
+                : `bg-black/35 hover:bg-black/80 text-white/70 hover:text-white border border-white/20 hover:border-white/40 shadow-lg ${idle ? "opacity-0 pointer-events-none" : "opacity-45 hover:opacity-100"
+                }`
+              }`}
             aria-label="Exit full screen"
             title="Exit full screen (Esc)"
           >
@@ -714,15 +711,13 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
           {/* Contents / Index button in fullscreen mode */}
           <div
-            className={`fixed ${
-              isMobile ? "top-3 left-3" : "top-3.5 right-3.5"
-            } z-50 flex items-center gap-2 transition-all duration-300 ${
-              isMobile
+            className={`fixed ${isMobile ? "top-3 left-3" : "top-3.5 right-3.5"
+              } z-50 flex items-center gap-2 transition-all duration-300 ${isMobile
                 ? "opacity-95"
                 : idle
                   ? "opacity-0 pointer-events-none"
                   : "opacity-45 hover:opacity-100"
-            }`}
+              }`}
           >
             <PageIndexDropdown
               issueId={issue.id}
@@ -802,11 +797,10 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         {!isMobile ? (
           <>
             <button
-              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full transition-all duration-300 cursor-pointer ${
-                isFullscreen
+              className={`hidden md:block absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full transition-all duration-300 cursor-pointer ${isFullscreen
                   ? "bg-transparent text-white/30 hover:text-white hover:bg-black/30 backdrop-blur-none"
                   : "bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-foreground/70"
-              } ${idle ? "opacity-0 pointer-events-none" : isFullscreen ? "opacity-20 hover:opacity-90" : "opacity-100"}`}
+                } ${idle ? "opacity-0 pointer-events-none" : isFullscreen ? "opacity-20 hover:opacity-90" : "opacity-100"}`}
               onClick={handlePrevArrowClick}
               onDoubleClick={handleArrowDoubleClick}
               onPointerDown={(e) => e.stopPropagation()}
@@ -818,11 +812,10 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
             </button>
 
             <button
-              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full transition-all duration-300 cursor-pointer ${
-                isFullscreen
+              className={`hidden md:block absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 z-50 p-2 sm:p-4 rounded-full transition-all duration-300 cursor-pointer ${isFullscreen
                   ? "bg-transparent text-white/30 hover:text-white hover:bg-black/30 backdrop-blur-none"
                   : "bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-foreground/70"
-              } ${idle ? "opacity-0 pointer-events-none" : isFullscreen ? "opacity-20 hover:opacity-90" : "opacity-100"}`}
+                } ${idle ? "opacity-0 pointer-events-none" : isFullscreen ? "opacity-20 hover:opacity-90" : "opacity-100"}`}
               onClick={handleNextArrowClick}
               onDoubleClick={handleArrowDoubleClick}
               onPointerDown={(e) => e.stopPropagation()}
@@ -841,18 +834,18 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
             width: fitWidth ? `${fitWidth}px` : "100%",
             transform: isRotated
               ? (zoom > 1
-                  ? `translate3d(${pan.x}px, ${pan.y}px, 0) rotate(90deg) scale(${rotateScale * zoom})`
-                  : `rotate(90deg) scale(${rotateScale})`)
+                ? `translate3d(${pan.x}px, ${pan.y}px, 0) rotate(90deg) scale(${rotateScale * zoom})`
+                : `rotate(90deg) scale(${rotateScale})`)
               : (zoom > 1
-                  ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`
-                  : undefined),
+                ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`
+                : undefined),
             transformOrigin: "center center",
             transition: isDraggingPan ? "none" : "transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1)",
             pointerEvents: zoom > 1 ? "none" : undefined,
             userSelect: zoom > 1 ? "none" : undefined,
           }}
         >
-          {mounted ? (
+          {mounted && fitWidth ? (
             <Suspense fallback={<div className="reader-fallback" aria-hidden="true" />}>
               <HTMLFlipBook
                 key={`${singlePage ? "portrait" : "spread"}-${isFullscreen ? "full" : "window"}`}
@@ -861,15 +854,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                 width={550}
                 height={777}
                 size="stretch"
-                minWidth={
-                  singlePage
-                    ? fitWidth
-                      ? Math.ceil(fitWidth * 0.6)
-                      : 250
-                    : isMobile
-                      ? 100
-                      : 240
-                }
+                minWidth={singlePage ? fitWidth : (isMobile ? 100 : 240)}
                 maxWidth={2500}
                 minHeight={isMobile ? 140 : 340}
                 maxHeight={2500}
@@ -919,9 +904,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         <Button
           variant="outline"
           size="icon"
-          className={`size-9 sm:size-11 rounded-full shrink-0 transition-colors ${
-            singlePage ? "bg-primary/15 text-primary border-primary/40" : ""
-          }`}
+          className={`size-9 sm:size-11 rounded-full shrink-0 transition-colors ${singlePage ? "bg-primary/15 text-primary border-primary/40" : ""
+            }`}
           aria-label={singlePage ? "Switch to two-page spread mode" : "Switch to single-page view mode"}
           title={singlePage ? "Switch to two-page spread mode" : "Switch to single-page view mode"}
           onClick={togglePageMode}
@@ -973,9 +957,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         <Button
           variant="outline"
           size="icon"
-          className={`size-9 sm:size-11 rounded-full shrink-0 transition-colors ${
-            isFullscreen ? "bg-primary/15 text-primary border-primary/40" : ""
-          }`}
+          className={`size-9 sm:size-11 rounded-full shrink-0 transition-colors ${isFullscreen ? "bg-primary/15 text-primary border-primary/40" : ""
+            }`}
           aria-label={isFullscreen ? "Exit full screen" : "Enter full screen of monitor"}
           title={isFullscreen ? "Exit full screen" : "Enter full screen of monitor"}
           onClick={toggleFullscreen}
