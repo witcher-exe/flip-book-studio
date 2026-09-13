@@ -30,28 +30,28 @@ export function CurvedTextBadge({
   text,
   side = "top",
   textColor = "#1e1b18",
+  className = "",
 }: {
   text: string;
   side?: "top" | "bottom";
   textColor?: string;
+  className?: string;
 }) {
   const id = React.useId().replace(/:/g, "");
 
   // Clean label string (e.g. remove any bullet symbols and extra whitespace)
   const cleanText = text.replace(/•/g, "").trim();
 
-  // Top arc: curves over the top of the button (left to right, heads pointing UP)
-  const topPath = "M 15,50 A 35,35 0 0,1 85,50";
+  // Tighter radius (28) brings the curved text snug to the button rim with minimal gap
+  const topPath = "M 22,50 A 28,28 0 0,1 78,50";
+  const bottomPath = "M 22,50 A 28,28 0 0,0 78,50";
 
-  // Bottom arc: curves under the bottom of the button (left to right, heads pointing UP)
-  const bottomPath = "M 13,50 A 37,37 0 0,0 87,50";
-
-  const fontSize = cleanText.length > 7 ? "11px" : "13px";
+  const fontSize = cleanText.length > 7 ? "11px" : "12.5px";
   const pathId = side === "bottom" ? `bottom-path-${id}` : `top-path-${id}`;
   const pathD = side === "bottom" ? bottomPath : topPath;
 
   return (
-    <div className="absolute -inset-4 sm:-inset-5 pointer-events-none flex items-center justify-center select-none z-20">
+    <div className={`absolute -inset-3 sm:-inset-3.5 pointer-events-none flex items-center justify-center select-none z-20 ${className}`}>
       <svg
         viewBox="0 0 100 100"
         className="w-full h-full overflow-visible"
@@ -291,33 +291,52 @@ export function PageAudioButton({
           <span className="absolute -inset-1 rounded-full animate-ping bg-emerald-400/30 pointer-events-none" />
         )}
 
-        {/* Hover / active audio tooltip */}
-        <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-md bg-[#231e17]/95 px-2.5 py-1 text-xs font-serif text-[#fdfbf7] shadow-xl border border-[#524536] group-hover:flex items-center gap-1.5 z-30 transition-opacity">
-          {isPlaying ? (
-            <span className="flex gap-0.5 items-end h-3">
-              <span className="w-0.5 h-3 bg-emerald-400 animate-pulse" />
-              <span className="w-0.5 h-2 bg-emerald-400 animate-pulse delay-75" />
-              <span className="w-0.5 h-2.5 bg-emerald-400 animate-pulse delay-150" />
-            </span>
-          ) : null}
-          <span>{isPlaying ? "Playing: " : "Listen: "} {title}</span>
-        </span>
+        {/* Hover / active audio tooltip ONLY when not playing, preventing weird rectangle behind slider pill */}
+        {!isPlaying ? (
+          <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-md bg-[#231e17]/95 px-2.5 py-1 text-xs font-serif text-[#fdfbf7] shadow-xl border border-[#524536] group-hover:flex items-center gap-1.5 z-30 transition-opacity">
+            <span>Listen: {title}</span>
+          </span>
+        ) : null}
       </button>
 
       {/* Scrubber slider bar beside audio button, only visible when playing */}
       {isPlaying && (
         <div
-          className="absolute left-full ml-3 sm:ml-4 flex items-center gap-2 bg-[#1c1917]/92 dark:bg-[#faf7f2]/95 text-white dark:text-[#1c1917] px-3 py-1.5 rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.4)] border border-white/20 dark:border-black/15 backdrop-blur-md z-30 pointer-events-auto animate-in fade-in slide-in-from-left-2 duration-200"
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          onMouseUp={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onPointerUp={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
+          className="page-interactive-elem absolute left-full ml-3 sm:ml-4 flex items-center gap-2 bg-[#1c1917]/92 dark:bg-[#faf7f2]/95 text-white dark:text-[#1c1917] px-3 py-1.5 rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.4)] border border-white/20 dark:border-black/15 backdrop-blur-md z-30 pointer-events-auto animate-in fade-in slide-in-from-left-2 duration-200 select-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onMouseUp={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onPointerUp={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onTouchMove={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            (e.nativeEvent as any)?.stopImmediatePropagation?.();
+          }}
         >
-          <span className="text-[10px] sm:text-xs font-mono font-medium opacity-90 select-none tabular-nums">
+          <span className="text-[10px] sm:text-xs font-mono font-medium opacity-90 select-none tabular-nums pointer-events-none">
             {formatAudioTime(currentTime)}
           </span>
 
@@ -327,35 +346,52 @@ export function PageAudioButton({
             max={duration > 0 ? duration : 100}
             step={0.5}
             value={currentTime}
+            onClick={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+              isSeekingRef.current = true;
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+              isSeekingRef.current = false;
+            }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+            }}
+            onPointerUp={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+              isSeekingRef.current = true;
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+              isSeekingRef.current = false;
+            }}
             onChange={(e) => {
               e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
               const val = parseFloat(e.target.value);
               setCurrentTime(val);
               if (audioRef.current) {
                 audioRef.current.currentTime = val;
               }
             }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              isSeekingRef.current = true;
-            }}
-            onMouseUp={(e) => {
-              e.stopPropagation();
-              isSeekingRef.current = false;
-            }}
-            onTouchStart={(e) => {
-              e.stopPropagation();
-              isSeekingRef.current = true;
-            }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              isSeekingRef.current = false;
-            }}
             className="w-16 sm:w-24 md:w-32 h-1.5 bg-white/25 dark:bg-black/20 rounded-full appearance-none cursor-pointer accent-emerald-400 focus:outline-none"
             aria-label="Seek audio"
           />
 
-          <span className="text-[10px] sm:text-xs font-mono font-medium opacity-70 select-none tabular-nums">
+          <span className="text-[10px] sm:text-xs font-mono font-medium opacity-70 select-none tabular-nums pointer-events-none">
             {formatAudioTime(duration)}
           </span>
         </div>
@@ -624,8 +660,13 @@ export function Page11PersonsButton({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Curved circular label around button */}
-      <CurvedTextBadge text="IMAGES" side="top" textColor="#8b2626" />
+      {/* Curved circular label on bottom of the button (default across desktop, fullscreen, mobile single-page) */}
+      <CurvedTextBadge text="IMAGES" side="bottom" textColor="#8b2626" className="page11-badge-curved" />
+
+      {/* Straight badge on the left side beside the button ONLY in mobile dual-page mode */}
+      <span className="page11-badge-side hidden absolute right-full mr-2.5 top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-black tracking-widest text-[#8b2626] select-none pointer-events-none drop-shadow-sm uppercase">
+        IMAGES
+      </span>
 
       <button
         type="button"
@@ -798,7 +839,7 @@ export function Page20AudioOverlay() {
         title={audio.title}
         subtitle={audio.subtitle}
         badgeText="AUDIO"
-        badgeSide="top"
+        badgeSide="bottom"
         ariaLabel="Read out Page 20"
       />
     </PageInteractiveWrapper>

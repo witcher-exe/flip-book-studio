@@ -548,6 +548,14 @@
     top: 73% !important;
     left: 8% !important;
   }
+
+  /* Page 11 persons button: straight badge to the left of the button in mobile dual-page mode */
+  .reader-stage--double-mobile .page11-badge-curved {
+    display: none !important;
+  }
+  .reader-stage--double-mobile .page11-badge-side {
+    display: block !important;
+  }
 }
 
 

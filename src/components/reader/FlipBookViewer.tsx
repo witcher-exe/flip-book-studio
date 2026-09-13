@@ -83,12 +83,24 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
   const totalPages = pages.length;
 
+  const suppressSoundRef = useRef(false);
+  const suppressSoundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const silenceSoundsTemporarily = useCallback((durationMs = 800) => {
+    suppressSoundRef.current = true;
+    if (suppressSoundTimerRef.current) clearTimeout(suppressSoundTimerRef.current);
+    suppressSoundTimerRef.current = setTimeout(() => {
+      suppressSoundRef.current = false;
+    }, durationMs);
+  }, []);
+
   useEffect(() => {
     setMounted(true);
     audioRef.current = new Audio(flipSoundUrl);
     return () => {
       if (arrowClickTimerRef.current.prev) clearTimeout(arrowClickTimerRef.current.prev);
       if (arrowClickTimerRef.current.next) clearTimeout(arrowClickTimerRef.current.next);
+      if (suppressSoundTimerRef.current) clearTimeout(suppressSoundTimerRef.current);
     };
   }, []);
 
@@ -97,6 +109,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   // Listen to native fullscreen changes on monitor/display
   useEffect(() => {
     const handleFullscreenChange = () => {
+      silenceSoundsTemporarily(800);
       const isFull = Boolean(
         document.fullscreenElement ||
         (document as any).webkitFullscreenElement ||
@@ -155,6 +168,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   }, []);
 
   const toggleFullscreen = useCallback(async () => {
+    silenceSoundsTemporarily(800);
     try {
       const isFull = Boolean(
         document.fullscreenElement ||
@@ -188,7 +202,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     } catch (err) {
       console.warn("Fullscreen toggle failed:", err);
     }
-  }, []);
+  }, [silenceSoundsTemporarily]);
 
   // react-pageflip's "stretch" mode derives height from width only, so cap the
   // width to whatever the stage can actually show without clipping the spread.
@@ -246,7 +260,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   }, [fitWidth, isFullscreen, singlePage, getFlip]);
 
   const playFlipSound = useCallback(() => {
-    if (!audioRef.current) return;
+    if (suppressSoundRef.current || !audioRef.current) return;
     try {
       const sound = audioRef.current.cloneNode() as HTMLAudioElement;
       sound.currentTime = 0.4;
@@ -684,33 +698,19 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   return (
     <div className={`reader-shell${isFullscreen ? " reader-shell--fullscreen" : ""}`} ref={containerRef}>
       {isFullscreen ? (
-        <div
-          className={`fixed top-3 right-3 z-50 flex items-center gap-2 transition-all duration-300 ${
-            isMobile
-              ? "opacity-95"
-              : idle
-                ? "opacity-0 pointer-events-none"
-                : "opacity-45 hover:opacity-100"
-          }`}
-        >
-          <PageIndexDropdown
-            issueId={issue.id}
-            pages={pages}
-            currentPage={currentPage}
-            onSelect={jumpWithHistory}
-            className={
-              isMobile
-                ? "bg-black/85 hover:bg-black text-white border-white/30 shadow-2xl px-3 py-1.5 text-xs font-medium"
-                : "bg-black/35 hover:bg-black/80 text-white border-white/20 hover:border-white/40 shadow-lg backdrop-blur-md text-xs font-medium"
-            }
-          />
+        <>
+          {/* Exit Full Screen button: on PC screens, positioned at top-left corner */}
           <button
             type="button"
             onClick={toggleFullscreen}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans font-medium tracking-wide backdrop-blur-md transition-all duration-200 cursor-pointer ${
+            className={`fixed ${
+              isMobile ? "top-3 right-3" : "top-3.5 left-3.5"
+            } z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans font-medium tracking-wide backdrop-blur-md transition-all duration-300 cursor-pointer ${
               isMobile
-                ? "bg-black/85 hover:bg-black text-white border border-white/30 shadow-2xl px-3.5 py-2 font-semibold"
-                : "bg-black/35 hover:bg-black/80 text-white border border-white/20 hover:border-white/40 shadow-lg"
+                ? "bg-black/85 hover:bg-black text-white border border-white/30 shadow-2xl px-3.5 py-2 font-semibold opacity-95"
+                : `bg-black/35 hover:bg-black/80 text-white/70 hover:text-white border border-white/20 hover:border-white/40 shadow-lg ${
+                    idle ? "opacity-0 pointer-events-none" : "opacity-45 hover:opacity-100"
+                  }`
             }`}
             aria-label="Exit full screen"
             title="Exit full screen (Esc)"
@@ -718,7 +718,32 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
             <Minimize className="size-3.5" />
             <span>Exit Full Screen</span>
           </button>
-        </div>
+
+          {/* Contents / Index button in fullscreen mode */}
+          <div
+            className={`fixed ${
+              isMobile ? "top-3 left-3" : "top-3.5 right-3.5"
+            } z-50 flex items-center gap-2 transition-all duration-300 ${
+              isMobile
+                ? "opacity-95"
+                : idle
+                  ? "opacity-0 pointer-events-none"
+                  : "opacity-45 hover:opacity-100"
+            }`}
+          >
+            <PageIndexDropdown
+              issueId={issue.id}
+              pages={pages}
+              currentPage={currentPage}
+              onSelect={jumpWithHistory}
+              className={
+                isMobile
+                  ? "bg-black/85 hover:bg-black text-white border-white/30 shadow-2xl px-3 py-1.5 text-xs font-medium"
+                  : "bg-black/35 hover:bg-black/80 text-white border-white/20 hover:border-white/40 shadow-lg backdrop-blur-md text-xs font-medium"
+              }
+            />
+          </div>
+        </>
       ) : null}
       <header className={`reader-topbar ${chrome}`}>
         <div className="min-w-0">
