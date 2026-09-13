@@ -855,13 +855,21 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           {mounted ? (
             <Suspense fallback={<div className="reader-fallback" aria-hidden="true" />}>
               <HTMLFlipBook
-                key={singlePage ? "portrait" : "spread"}
+                key={`${singlePage ? "portrait" : "spread"}-${isFullscreen ? "full" : "window"}`}
                 ref={bookRef as never}
                 className={`flipbook${singlePage ? " flipbook--no-shadow" : ""}`}
                 width={550}
                 height={777}
                 size="stretch"
-                minWidth={singlePage ? 50000 : isMobile ? 100 : 240}
+                minWidth={
+                  singlePage
+                    ? fitWidth
+                      ? Math.ceil(fitWidth * 0.6)
+                      : 250
+                    : isMobile
+                      ? 100
+                      : 240
+                }
                 maxWidth={2500}
                 minHeight={isMobile ? 140 : 340}
                 maxHeight={2500}
