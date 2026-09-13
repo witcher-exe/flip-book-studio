@@ -71,6 +71,10 @@ function PanelBody({ issueId, pages, currentPage, onSelect }: Props) {
           touchAction: "pan-y",
           WebkitOverflowScrolling: "touch",
         }}
+        onWheel={(e) => {
+          // Ensure wheel scrolling propagates inside the scroll container without outer interference
+          e.stopPropagation();
+        }}
       >
         <CommandList
           data-vaul-no-drag
@@ -167,8 +171,14 @@ export function PageIndexDropdown(props: Props) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent align="end" className="w-[380px] p-0">
-        <PanelBody {...props} onSelect={handleSelect} />
+      <PopoverContent
+        align="end"
+        sideOffset={6}
+        className="w-[380px] max-h-[75vh] h-[520px] flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl border border-border bg-popover z-50"
+      >
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <PanelBody {...props} onSelect={handleSelect} />
+        </div>
       </PopoverContent>
     </Popover>
   );

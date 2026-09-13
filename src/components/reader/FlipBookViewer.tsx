@@ -886,6 +886,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                 flippingTime={700}
                 mobileScrollSupport
                 useMouseEvents
+                showPageCorners={false}
+                clickEventForward
                 disableFlipByClick
                 swipeDistance={30}
                 startPage={currentPage - 1}

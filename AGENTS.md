@@ -16,7 +16,7 @@
 - **Single Exception**: ONLY in **mobile dual-page mode** (`isMobile && !singlePage` and screen width `<= 767px`), they are placed horizontally side-by-side (`flex-direction: row`).
 - **Labels**: Bold, clean circular curved SVG text badges without stroke or dots, hugging the circular button rim with a tiny clean gap. Audio, Video, and Page 11 labels are completely independent components/configs so tweaking one NEVER alters the other. Audio has badge on top ("AUDIO"), Video has badge on bottom ("VIDEO").
 - **Page 20 Audio Button**: Badge MUST be on the **bottom** ("AUDIO") to avoid overlapping page footer text.
-- **Audio Slider Scrubber**: Appears beside the audio button only while playing. Must NEVER display any black rectangle/tooltip behind it when hovering. Clicks/drags anywhere on the slider pill MUST NOT flip pages (`page-interactive-elem` with event isolation).
+- **Audio Slider Scrubber**: Appears beside the audio button only while playing. Must NEVER display any black rectangle/tooltip behind it when hovering. Clicks/drags anywhere on the slider pill MUST NOT flip pages (`page-interactive-elem` with native event isolation and `showPageCorners={false}` on `HTMLFlipBook`). Instant seeking via both `onInput` and `onChange`.
 
 ### 2. Page 11 Button (8 Personalities)
 - **Label Orientation**: Curved "IMAGES" label MUST be on the **bottom** of the button circle by default (desktop, fullscreen, mobile single-page).
@@ -32,7 +32,8 @@
   - **Zero Sound on Transition**: Entering or exiting fullscreen MUST be silent (flip sounds suppressed during fullscreen transitions).
   - **Layout Synchronization**: Must call `flip.update()` across the resize lifecycle to ensure `PageFlip` re-centers and scales pages properly without cropping or mispositioning.
 
-### 4. Mobile Navigation & Drawers
+### 4. Contents Dropdown & Drawers
+- **Contents Popover (Desktop / Fullscreen)**: `PopoverContent` must have an explicit bounded height (`w-[380px] max-h-[75vh] h-[520px] flex flex-col p-0 overflow-hidden`) so mouse wheel scrolling works reliably across all 64 pages without stretching past the viewport.
 - **Contents Drawer (Mobile)**: The page list inside the mobile Contents Drawer must have `data-vaul-no-drag` and `touch-action: pan-y` so users can swipe up and down smoothly to scroll through all pages without `vaul` hijacking the gesture to dismiss the drawer.
 - **Swipe-to-Previous on Single Page Mobile**: Must use `(flip as any).turnToPrevPage?.()` instead of relying on `react-pageflip`'s internal portrait swipe calculation to prevent getting stuck.
 - **Mode Toggle**: Mobile users can toggle between single-page and double-page mode via the dedicated button on the bottom bar OR via double-tap gesture.

@@ -206,16 +206,41 @@ export function PageInteractiveWrapper({
   className?: string;
   style?: React.CSSProperties;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const stopNative = (e: Event) => {
+      e.stopPropagation();
+    };
+
+    const events = [
+      "mousedown",
+      "mouseup",
+      "click",
+      "dblclick",
+      "pointerdown",
+      "pointerup",
+      "pointermove",
+      "touchstart",
+      "touchend",
+      "touchmove",
+      "mousemove",
+    ];
+
+    events.forEach((name) => el.addEventListener(name, stopNative, false));
+    return () => {
+      events.forEach((name) => el.removeEventListener(name, stopNative, false));
+    };
+  }, []);
+
   return (
     <div
+      ref={ref}
       className={`page-interactive-elem ${className}`}
       style={style}
-      onMouseDown={(e) => e.stopPropagation()}
-      onMouseUp={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-      onPointerUp={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
     >
       {children}
     </div>
@@ -364,6 +389,43 @@ export function PageAudioButton({
     }
   };
 
+  const sliderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el || !isPlaying) return;
+
+    const stopNative = (e: Event) => {
+      e.stopPropagation();
+    };
+
+    const events = [
+      "mousedown",
+      "mouseup",
+      "click",
+      "dblclick",
+      "pointerdown",
+      "pointerup",
+      "pointermove",
+      "touchstart",
+      "touchend",
+      "touchmove",
+      "mousemove",
+    ];
+
+    events.forEach((name) => el.addEventListener(name, stopNative, false));
+    return () => {
+      events.forEach((name) => el.removeEventListener(name, stopNative, false));
+    };
+  }, [isPlaying]);
+
+  const handleSeek = (val: number) => {
+    setCurrentTime(val);
+    if (audioRef.current) {
+      audioRef.current.currentTime = val;
+    }
+  };
+
   return (
     <div className={`relative flex items-center ${className}`}>
       {/* Curved circular label around button - independently tuned for Audio */}
@@ -414,6 +476,7 @@ export function PageAudioButton({
       {/* Scrubber slider bar beside audio button, only visible when playing */}
       {isPlaying && (
         <div
+          ref={sliderRef}
           className="page-interactive-elem absolute left-full ml-3 sm:ml-4 flex items-center gap-2 bg-[#1c1917]/92 dark:bg-[#faf7f2]/95 text-white dark:text-[#1c1917] px-3 py-1.5 rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.4)] border border-white/20 dark:border-black/15 backdrop-blur-md z-30 pointer-events-auto animate-in fade-in slide-in-from-left-2 duration-200 select-none"
           onClick={(e) => {
             e.stopPropagation();
@@ -456,7 +519,7 @@ export function PageAudioButton({
             type="range"
             min={0}
             max={duration > 0 ? duration : 100}
-            step={0.5}
+            step={0.1}
             value={currentTime}
             onClick={(e) => {
               e.stopPropagation();
@@ -490,14 +553,17 @@ export function PageAudioButton({
               (e.nativeEvent as any)?.stopImmediatePropagation?.();
               isSeekingRef.current = false;
             }}
+            onInput={(e) => {
+              e.stopPropagation();
+              (e.nativeEvent as any)?.stopImmediatePropagation?.();
+              const val = parseFloat((e.target as HTMLInputElement).value);
+              handleSeek(val);
+            }}
             onChange={(e) => {
               e.stopPropagation();
               (e.nativeEvent as any)?.stopImmediatePropagation?.();
               const val = parseFloat(e.target.value);
-              setCurrentTime(val);
-              if (audioRef.current) {
-                audioRef.current.currentTime = val;
-              }
+              handleSeek(val);
             }}
             className="w-16 sm:w-24 md:w-32 h-1.5 bg-white/25 dark:bg-black/20 rounded-full appearance-none cursor-pointer accent-emerald-400 focus:outline-none"
             aria-label="Seek audio"
