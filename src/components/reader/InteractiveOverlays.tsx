@@ -206,41 +206,13 @@ export function PageInteractiveWrapper({
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const stopNative = (e: Event) => {
-      e.stopPropagation();
-    };
-
-    const events = [
-      "mousedown",
-      "mouseup",
-      "click",
-      "dblclick",
-      "pointerdown",
-      "pointerup",
-      "pointermove",
-      "touchstart",
-      "touchend",
-      "touchmove",
-      "mousemove",
-    ];
-
-    events.forEach((name) => el.addEventListener(name, stopNative, false));
-    return () => {
-      events.forEach((name) => el.removeEventListener(name, stopNative, false));
-    };
-  }, []);
-
   return (
     <div
-      ref={ref}
       className={`page-interactive-elem ${className}`}
       style={style}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
     >
       {children}
     </div>
@@ -401,15 +373,8 @@ export function PageAudioButton({
 
     const events = [
       "mousedown",
-      "mouseup",
-      "click",
-      "dblclick",
       "pointerdown",
-      "pointerup",
-      "pointermove",
       "touchstart",
-      "touchend",
-      "touchmove",
       "mousemove",
     ];
 

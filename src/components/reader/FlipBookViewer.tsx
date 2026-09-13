@@ -258,9 +258,29 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       clearTimeout(t2);
     };
   }, [fitWidth, isFullscreen, singlePage, getFlip]);
+  // Suppress flip sounds when window loses focus (e.g. Win + Shift + S screenshot) or during tab switch
+  useEffect(() => {
+    const suppressOnBlurOrHide = () => {
+      silenceSoundsTemporarily(1200);
+    };
+    window.addEventListener("blur", suppressOnBlurOrHide);
+    document.addEventListener("visibilitychange", suppressOnBlurOrHide);
+    return () => {
+      window.removeEventListener("blur", suppressOnBlurOrHide);
+      document.removeEventListener("visibilitychange", suppressOnBlurOrHide);
+    };
+  }, [silenceSoundsTemporarily]);
 
   const playFlipSound = useCallback(() => {
-    if (suppressSoundRef.current || !audioRef.current) return;
+    if (
+      suppressSoundRef.current ||
+      !audioRef.current ||
+      typeof document === "undefined" ||
+      document.hidden ||
+      !document.hasFocus()
+    ) {
+      return;
+    }
     try {
       const sound = audioRef.current.cloneNode() as HTMLAudioElement;
       sound.currentTime = 0.4;
@@ -281,75 +301,37 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     const flip = getFlip();
     if (!flip) return;
 
-    if (singlePageRef.current) {
-      try {
-        (flip as any).turnToPrevPage?.();
-      } catch {
-        try {
-          flip.flipPrev();
-        } catch {
-          (flip as any).turnToPage?.(Math.max(0, currentPage - 2));
-        }
-      }
-      playFlipSound();
-      return;
-    }
-
-    try {
-      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
-      const render = (flip as any).getRender?.() ?? (flip as any).render;
-      const rect = render?.getRect?.();
-      if (fc && rect) {
-        fc.flip({
-          x: rect.left + 15,
-          y: rect.top + 10,
-        });
-        return;
-      }
-    } catch {}
     try {
       flip.flipPrev();
-    } catch {
+      return;
+    } catch {}
+
+    try {
       (flip as any).turnToPrevPage?.();
+    } catch {
+      try {
+        (flip as any).turnToPage?.(Math.max(0, currentPage - 2));
+      } catch {}
     }
-  }, [currentPage, getFlip, playFlipSound]);
+  }, [currentPage, getFlip]);
 
   const flipNextSafe = useCallback(() => {
     const flip = getFlip();
     if (!flip) return;
 
-    if (singlePageRef.current) {
-      try {
-        (flip as any).turnToNextPage?.();
-      } catch {
-        try {
-          flip.flipNext();
-        } catch {
-          (flip as any).turnToPage?.(Math.min(totalPages - 1, currentPage));
-        }
-      }
-      playFlipSound();
-      return;
-    }
-
-    try {
-      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
-      const render = (flip as any).getRender?.() ?? (flip as any).render;
-      const rect = render?.getRect?.();
-      if (fc && rect) {
-        fc.flip({
-          x: rect.left + rect.width - 15,
-          y: rect.top + 10,
-        });
-        return;
-      }
-    } catch {}
     try {
       flip.flipNext();
-    } catch {
+      return;
+    } catch {}
+
+    try {
       (flip as any).turnToNextPage?.();
+    } catch {
+      try {
+        (flip as any).turnToPage?.(Math.min(totalPages - 1, currentPage));
+      } catch {}
     }
-  }, [currentPage, getFlip, playFlipSound, totalPages]);
+  }, [currentPage, getFlip, totalPages]);
 
   const { jumpToPage, phase, isRiffling } = useRiffleJump(getFlip, totalPages, (n) => {
     setCurrentPage(n);
@@ -372,13 +354,24 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     });
   }, [jumpToPage]);
 
-  // Keyboard navigation
+  // Keyboard navigation: Left & Right arrow keys flip back and forth
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
-      if (e.key === "ArrowRight") flipNextSafe();
-      if (e.key === "ArrowLeft") flipPrevSafe();
+      if (
+        target &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (e.key === "ArrowRight" || e.code === "ArrowRight") {
+        e.preventDefault();
+        flipNextSafe();
+      } else if (e.key === "ArrowLeft" || e.code === "ArrowLeft") {
+        e.preventDefault();
+        flipPrevSafe();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -868,15 +861,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                 width={550}
                 height={777}
                 size="stretch"
-                minWidth={
-                  singlePage
-                    ? fitWidth
-                      ? Math.floor(fitWidth / 2) + 10
-                      : 315
-                    : isMobile
-                      ? 100
-                      : 240
-                }
+                minWidth={singlePage ? 50000 : isMobile ? 100 : 240}
                 maxWidth={2500}
                 minHeight={isMobile ? 140 : 340}
                 maxHeight={2500}
