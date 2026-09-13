@@ -73,6 +73,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   } | null>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastPointerDownRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const pointerSwipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const lastToggleTimeRef = useRef<number>(0);
   // Refs to expose current state to capture-phase native event handlers
   const singlePageRef = useRef(singlePage);
@@ -182,50 +183,6 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
   const getFlip = useCallback(() => bookRef.current?.pageFlip() ?? null, []);
 
-  const flipPrevSafe = useCallback(() => {
-    const flip = getFlip();
-    if (!flip) return;
-    try {
-      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
-      const render = (flip as any).getRender?.() ?? (flip as any).render;
-      const rect = render?.getRect?.();
-      if (fc && rect) {
-        fc.flip({
-          x: rect.left + 15,
-          y: rect.top + 10,
-        });
-        return;
-      }
-    } catch {}
-    try {
-      flip.flipPrev();
-    } catch {
-      (flip as any).turnToPrevPage?.();
-    }
-  }, [getFlip]);
-
-  const flipNextSafe = useCallback(() => {
-    const flip = getFlip();
-    if (!flip) return;
-    try {
-      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
-      const render = (flip as any).getRender?.() ?? (flip as any).render;
-      const rect = render?.getRect?.();
-      if (fc && rect) {
-        fc.flip({
-          x: rect.left + rect.width - 15,
-          y: rect.top + 10,
-        });
-        return;
-      }
-    } catch {}
-    try {
-      flip.flipNext();
-    } catch {
-      (flip as any).turnToNextPage?.();
-    }
-  }, [getFlip]);
-
   const playFlipSound = useCallback(() => {
     if (!audioRef.current) return;
     try {
@@ -243,6 +200,80 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       audioRef.current.play().catch(() => {});
     }
   }, []);
+
+  const flipPrevSafe = useCallback(() => {
+    const flip = getFlip();
+    if (!flip) return;
+
+    if (singlePageRef.current) {
+      try {
+        (flip as any).turnToPrevPage?.();
+      } catch {
+        try {
+          flip.flipPrev();
+        } catch {
+          (flip as any).turnToPage?.(Math.max(0, currentPage - 2));
+        }
+      }
+      playFlipSound();
+      return;
+    }
+
+    try {
+      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
+      const render = (flip as any).getRender?.() ?? (flip as any).render;
+      const rect = render?.getRect?.();
+      if (fc && rect) {
+        fc.flip({
+          x: rect.left + 15,
+          y: rect.top + 10,
+        });
+        return;
+      }
+    } catch {}
+    try {
+      flip.flipPrev();
+    } catch {
+      (flip as any).turnToPrevPage?.();
+    }
+  }, [currentPage, getFlip, playFlipSound]);
+
+  const flipNextSafe = useCallback(() => {
+    const flip = getFlip();
+    if (!flip) return;
+
+    if (singlePageRef.current) {
+      try {
+        (flip as any).turnToNextPage?.();
+      } catch {
+        try {
+          flip.flipNext();
+        } catch {
+          (flip as any).turnToPage?.(Math.min(totalPages - 1, currentPage));
+        }
+      }
+      playFlipSound();
+      return;
+    }
+
+    try {
+      const fc = (flip as any).getFlipController?.() ?? (flip as any).flipController;
+      const render = (flip as any).getRender?.() ?? (flip as any).render;
+      const rect = render?.getRect?.();
+      if (fc && rect) {
+        fc.flip({
+          x: rect.left + rect.width - 15,
+          y: rect.top + 10,
+        });
+        return;
+      }
+    } catch {}
+    try {
+      flip.flipNext();
+    } catch {
+      (flip as any).turnToNextPage?.();
+    }
+  }, [currentPage, getFlip, playFlipSound, totalPages]);
 
   const { jumpToPage, phase, isRiffling } = useRiffleJump(getFlip, totalPages, (n) => {
     setCurrentPage(n);
@@ -459,10 +490,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         return;
       }
 
-      // Reliable swipe handling in mobile single-page mode (fixes react-pageflip's flipPrev offset bug)
+      // Reliable swipe handling in single-page mode (touchscreens)
       if (
         swipeStartRef.current &&
-        isMobile &&
         singlePageRef.current &&
         zoomRef.current <= 1 &&
         e.changedTouches.length > 0
@@ -472,7 +502,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         const dy = Math.abs(touch.clientY - swipeStartRef.current.y);
         const dt = Date.now() - swipeStartRef.current.time;
 
-        if (Math.abs(dx) > 35 && dy < Math.abs(dx) * 0.8 && dt < 450) {
+        if (Math.abs(dx) > 30 && dy < Math.abs(dx) * 1.2 && dt < 1000) {
           e.stopPropagation();
           e.preventDefault();
           if (dx > 0) {
@@ -493,9 +523,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
       stage.removeEventListener('touchstart', onTouchStartCapture, { capture: true });
       stage.removeEventListener('touchend', onTouchEndCapture, { capture: true });
     };
-  }, [mounted]);
+  }, [flipPrevSafe, flipNextSafe]);
 
-  // Pointer panning handlers when zoom > 1
+  // Pointer panning handlers when zoom > 1, plus mouse drag swipe when zoom <= 1
   const onStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const now = Date.now();
     const last = lastPointerDownRef.current;
@@ -523,6 +553,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       } catch {}
       e.stopPropagation();
+    } else if (singlePageRef.current) {
+      // Track drag-swipe on desktop / Chrome DevTools responsive mode
+      pointerSwipeStartRef.current = { x: e.clientX, y: e.clientY, time: now };
     }
   };
 
@@ -544,6 +577,20 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   };
 
   const onStagePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerSwipeStartRef.current && singlePageRef.current && zoom <= 1) {
+      const dx = e.clientX - pointerSwipeStartRef.current.x;
+      const dy = Math.abs(e.clientY - pointerSwipeStartRef.current.y);
+      const dt = Date.now() - pointerSwipeStartRef.current.time;
+      if (Math.abs(dx) > 30 && dy < Math.abs(dx) * 1.2 && dt < 1000) {
+        if (dx > 0) {
+          flipPrevSafe();
+        } else {
+          flipNextSafe();
+        }
+      }
+      pointerSwipeStartRef.current = null;
+    }
+
     if (panDragRef.current) {
       try {
         (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
