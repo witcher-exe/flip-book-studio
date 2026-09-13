@@ -8,7 +8,18 @@ import {
   useState,
   type ComponentType,
 } from "react";
-import { ChevronLeft, ChevronRight, Moon, RotateCw, Sun, Undo2 } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Maximize,
+  Minimize,
+  Moon,
+  RotateCw,
+  Sun,
+  Undo2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -42,6 +53,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   const [fitWidth, setFitWidth] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const [singlePage, setSinglePage] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRotated, setIsRotated] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -79,6 +91,74 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     };
   }, []);
 
+  // Listen to native fullscreen changes on monitor/display
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFull = Boolean(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isFull);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+    };
+  }, []);
+
+  const togglePageMode = useCallback(() => {
+    setIsRotated(false);
+    setSinglePage((prev) => !prev);
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      const isFull = Boolean(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+
+      if (!isFull) {
+        const target = containerRef.current || document.documentElement;
+        if (target.requestFullscreen) {
+          await target.requestFullscreen();
+        } else if ((target as any).webkitRequestFullscreen) {
+          await (target as any).webkitRequestFullscreen();
+        } else if ((target as any).mozRequestFullScreen) {
+          await (target as any).mozRequestFullScreen();
+        } else if ((target as any).msRequestFullscreen) {
+          await (target as any).msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).mozCancelFullScreen) {
+          await (document as any).mozCancelFullScreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn("Fullscreen toggle failed:", err);
+    }
+  }, []);
+
   // react-pageflip's "stretch" mode derives height from width only, so cap the
   // width to whatever the stage can actually show without clipping the spread.
   useEffect(() => {
@@ -88,9 +168,9 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     const measure = () => {
       const { width, height } = stage.getBoundingClientRect();
       if (width === 0 || height === 0) return;
-      const spread = isMobile ? (singlePage ? 1 : 2) : 2;
-      // In mobile double-page mode, reserve a little margin (24px) so both left and right edges are never cropped
-      const horizontalPadding = isMobile && !singlePage ? 24 : 0;
+      const spread = singlePage ? 1 : 2;
+      // In double-page mode on mobile, reserve a little margin (24px) so both left and right edges are never cropped
+      const horizontalPadding = !singlePage && isMobile ? 24 : 0;
       const safeWidth = Math.max(100, width - horizontalPadding);
       setFitWidth(Math.floor(Math.min(safeWidth, (height / PAGE_RATIO) * spread)));
     };
@@ -98,7 +178,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     const observer = new ResizeObserver(measure);
     observer.observe(stage);
     return () => observer.disconnect();
-  }, [mounted, isMobile, singlePage]);
+  }, [mounted, isMobile, singlePage, isFullscreen]);
 
   const getFlip = useCallback(() => bookRef.current?.pageFlip() ?? null, []);
 
@@ -493,7 +573,19 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
   };
 
   return (
-    <div className="reader-shell" ref={containerRef}>
+    <div className={`reader-shell${isFullscreen ? " reader-shell--fullscreen" : ""}`} ref={containerRef}>
+      {isFullscreen ? (
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          className="fixed top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 text-xs font-sans font-medium tracking-wide backdrop-blur-md shadow-2xl transition-all cursor-pointer hover:scale-105 active:scale-95"
+          aria-label="Exit full screen"
+          title="Exit full screen (Esc)"
+        >
+          <Minimize className="size-3.5" />
+          <span>Exit Full Screen</span>
+        </button>
+      ) : null}
       <header className={`reader-topbar ${chrome}`}>
         <div className="min-w-0">
           <p className="font-sans text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -544,7 +636,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
 
       <div
         ref={stageRef}
-        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${isMobile && singlePage ? " reader-stage--single-mobile" : ""}${isMobile && !singlePage ? " reader-stage--double-mobile" : ""}`}
+        className={`reader-stage relative overflow-hidden${phase === "cruise" ? " reader-stage--cruise" : ""}${singlePage ? " reader-stage--single-mobile" : " reader-stage--double-mobile"}`}
         style={{
           cursor: zoom > 1 ? (isDraggingPan ? "grabbing" : "grab") : undefined,
           touchAction: zoom > 1 ? "none" : undefined,
@@ -603,14 +695,14 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           {mounted ? (
             <Suspense fallback={<div className="reader-fallback" aria-hidden="true" />}>
               <HTMLFlipBook
-                key={isMobile && singlePage ? "portrait" : "spread"}
+                key={singlePage ? "portrait" : "spread"}
                 ref={bookRef as never}
-                className={`flipbook${isMobile && singlePage ? " flipbook--no-shadow" : ""}`}
+                className={`flipbook${singlePage ? " flipbook--no-shadow" : ""}`}
                 width={550}
                 height={777}
                 size="stretch"
                 minWidth={
-                  isMobile && singlePage
+                  singlePage
                     ? fitWidth
                       ? Math.floor(fitWidth / 2) + 10
                       : 315
@@ -621,8 +713,8 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                 maxWidth={760}
                 minHeight={isMobile ? 140 : 340}
                 maxHeight={1080}
-                maxShadowOpacity={isMobile && singlePage ? 0 : 0.5}
-                drawShadow={!(isMobile && singlePage)}
+                maxShadowOpacity={singlePage ? 0 : 0.5}
+                drawShadow={!singlePage}
                 showCover
                 flippingTime={700}
                 mobileScrollSupport
@@ -630,7 +722,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
                 disableFlipByClick
                 swipeDistance={30}
                 startPage={currentPage - 1}
-                usePortrait={isMobile && singlePage}
+                usePortrait={singlePage}
                 onFlip={(e: { data: number }) => {
                   setCurrentPage(e.data + 1);
                   if (!soundTriggeredForFlipRef.current) {
@@ -665,6 +757,22 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         <Button
           variant="outline"
           size="icon"
+          className={`size-9 sm:size-11 rounded-full shrink-0 transition-colors ${
+            singlePage ? "bg-primary/15 text-primary border-primary/40" : ""
+          }`}
+          aria-label={singlePage ? "Switch to two-page spread mode" : "Switch to single-page view mode"}
+          title={singlePage ? "Switch to two-page spread mode" : "Switch to single-page view mode"}
+          onClick={togglePageMode}
+        >
+          {singlePage ? (
+            <BookOpen className="size-4 sm:size-5" />
+          ) : (
+            <FileText className="size-4 sm:size-5" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
           className="size-9 sm:size-11 rounded-full shrink-0"
           aria-label="Previous page"
           onClick={flipPrevSafe}
@@ -674,7 +782,7 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
         <span className="font-sans text-xs tabular-nums tracking-wide text-muted-foreground whitespace-nowrap shrink-0">
           Page {currentPage} of {totalPages}
         </span>
-        <div className="flex items-center gap-1.5 sm:gap-2 w-24 sm:w-32">
+        <div className="flex items-center gap-1.5 sm:gap-2 w-16 sm:w-28">
           <Slider
             min={1}
             max={4}
@@ -699,6 +807,22 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
           onClick={flipNextSafe}
         >
           <ChevronRight className="size-4 sm:size-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className={`size-9 sm:size-11 rounded-full shrink-0 transition-colors ${
+            isFullscreen ? "bg-primary/15 text-primary border-primary/40" : ""
+          }`}
+          aria-label={isFullscreen ? "Exit full screen" : "Enter full screen of monitor"}
+          title={isFullscreen ? "Exit full screen" : "Enter full screen of monitor"}
+          onClick={toggleFullscreen}
+        >
+          {isFullscreen ? (
+            <Minimize className="size-4 sm:size-5" />
+          ) : (
+            <Maximize className="size-4 sm:size-5" />
+          )}
         </Button>
       </footer>
 

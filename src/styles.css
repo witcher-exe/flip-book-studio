@@ -171,6 +171,17 @@
   background-image: url("./assets/Magazine_BG_dark.webp");
 }
 
+.reader-shell:fullscreen,
+.reader-shell:-webkit-full-screen,
+.reader-shell:-moz-full-screen,
+.reader-shell:-ms-fullscreen,
+.reader-shell--fullscreen {
+  background: #000000 !important;
+  background-image: none !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
 .reader-topbar {
   display: flex;
   align-items: center;
@@ -183,8 +194,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.5rem, 2.5vw, 1.25rem);
-  padding: 0.75rem clamp(0.5rem, 2.5vw, 1rem) clamp(0.9rem, 3vw, 1.75rem);
+  flex-wrap: nowrap;
+  gap: clamp(0.25rem, 1.8vw, 1.1rem);
+  padding: 0.75rem clamp(0.4rem, 2vw, 1rem) clamp(0.85rem, 3vw, 1.75rem);
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.reader-shell--fullscreen .reader-bottombar,
+.reader-shell:fullscreen .reader-bottombar {
+  background: rgba(18, 18, 18, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  margin-bottom: clamp(0.4rem, 1.5vh, 1rem);
 }
 
 .reader-chrome {
