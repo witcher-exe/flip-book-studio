@@ -8,8 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
-    "deploy:dry-run": "npm run build && wrangler deploy --dry-run",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=flip-book-studio --commit-dirty=true",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name=flip-book-studio --branch=preview --commit-dirty=true",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
