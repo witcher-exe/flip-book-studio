@@ -167,6 +167,256 @@
       "content_html": "<p class=\"lede\">Next-generation case analysis software.</p>",
       "background_image_url": null,
       "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000017",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 17,
+      "title": "Article — Part 2",
+      "section": "Feature Article",
+      "content_html": "<p class=\"lede\">In-depth clinical exploration and discussion on classical homeopathy.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000018",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 18,
+      "title": "Article — Part 3",
+      "section": "Feature Article",
+      "content_html": "<p class=\"lede\">Therapeutic analysis, observations, and case outcomes.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000019",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 19,
+      "title": "Article — Part 4",
+      "section": "Feature Article",
+      "content_html": "<p class=\"lede\">Clinical conclusions, prognostic evaluation, and principles.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000020",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 20,
+      "title": "Clinical Insights & Audio Lecture",
+      "section": "Audio Feature",
+      "content_html": "<p class=\"lede\">Audio discourse on foundational homeopathic healing principles.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000021",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 21,
+      "title": "History of Homeopathy — Part 1",
+      "section": "History",
+      "content_html": "<p class=\"lede\">Historical origins, Hahnemannian traditions, and early developments.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000022",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 22,
+      "title": "History of Homeopathy — Part 2",
+      "section": "History",
+      "content_html": "<p class=\"lede\">Evolution of homeopathic medicine in the subcontinent and modern milestones.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000023",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 23,
+      "title": "Professional Soft Skills — Part 1",
+      "section": "Professional Development",
+      "content_html": "<p class=\"lede\">Communication, empathy, and bedside demeanor in clinical practice.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000024",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 24,
+      "title": "Professional Soft Skills — Part 2",
+      "section": "Professional Development",
+      "content_html": "<p class=\"lede\">Leadership, patient relationship building, and continuous learning.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000025",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 25,
+      "title": "Patient Testimonials — Part 1",
+      "section": "Testimonials",
+      "content_html": "<p class=\"lede\">Real healing journeys, patient voices, and case outcomes.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000026",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 26,
+      "title": "Patient Testimonials — Part 2",
+      "section": "Testimonials",
+      "content_html": "<p class=\"lede\">Transformative patient experiences and long-term vitality restored.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000027",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 27,
+      "title": "World Homeopathy Day",
+      "section": "Special Feature",
+      "content_html": "<p class=\"lede\">Celebrating global contributions and community dedication to natural healing.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000028",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 28,
+      "title": "Distinguished Doctors — Feature 1",
+      "section": "Recognition",
+      "content_html": "<p class=\"lede\">Honoring dedicated physicians, clinical mentors, and healthcare leaders.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000029",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 29,
+      "title": "Distinguished Doctors — Feature 2",
+      "section": "Recognition",
+      "content_html": "<p class=\"lede\">Excellence in community service and compassionate healthcare leadership.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000030",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 30,
+      "title": "Community & Practice Highlights",
+      "section": "Community",
+      "content_html": "<p class=\"lede\">Healthcare seminars, institutional gatherings, and outreach initiatives.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000031",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 31,
+      "title": "Special Discount & Clinical Offers",
+      "section": "Announcements",
+      "content_html": "<p class=\"lede\">Exclusive health packages, diagnostic privileges, and special discount offers.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000032",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 32,
+      "title": "Clinical Case Series — Part 1",
+      "section": "Case Studies",
+      "content_html": "<p class=\"lede\">Complex constitutional cases, remedy selection, and therapeutic response.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000033",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 33,
+      "title": "Clinical Case Series — Part 2",
+      "section": "Case Studies",
+      "content_html": "<p class=\"lede\">Miasmatic differentiation and managing deep-seated pathology.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000034",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 34,
+      "title": "Clinical Case Series — Part 3",
+      "section": "Case Studies",
+      "content_html": "<p class=\"lede\">Repertory analysis and long-term cure documentation.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000035",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 35,
+      "title": "Clinic Promotion — Healthcare Services",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Comprehensive medical consultations, diagnostics, and modern clinic facilities.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000036",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 36,
+      "title": "Clinic Promotion — Ultrasound & Diagnostics",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Accurate ultrasound imaging, radiology expertise, and fast diagnostic reporting.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000037",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 37,
+      "title": "Clinic Promotion — Consultation Services",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Personalized consultations and specialist care for holistic wellbeing.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000038",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 38,
+      "title": "Clinic Promotion — Specialized Treatment",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Targeted care plans for chronic conditions and preventative wellness.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000039",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 39,
+      "title": "Clinic Promotion — Family Wellness",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Safe, gentle, and reliable holistic healthcare for every family member.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000040",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 40,
+      "title": "Clinic Promotion — Holistic Health Support",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Dedicated patient guidance, lifestyle harmony, and restorative remedies.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
+    },
+    {
+      "id": "22222222-2222-4222-8222-000000000041",
+      "issue_id": "11111111-1111-4111-8111-000000000001",
+      "page_number": 41,
+      "title": "Clinic Promotion — Appointments & Contacts",
+      "section": "Clinic Promotion",
+      "content_html": "<p class=\"lede\">Easy appointment scheduling, clinic hotlines, and location details.</p>",
+      "background_image_url": null,
+      "thumbnail_url": null
     }
   ],
   "page_references": [

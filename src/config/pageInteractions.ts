@@ -1,12 +1,5 @@
 // Configuration for interactive page elements (Audio, Video, Person Gallery)
-import person1 from "@/assets/persons/person1.webp";
-import person2 from "@/assets/persons/person2.webp";
-import person3 from "@/assets/persons/person3.webp";
-import person4 from "@/assets/persons/person4.webp";
-import person5 from "@/assets/persons/person5.webp";
-import person6 from "@/assets/persons/person6.webp";
-import person7 from "@/assets/persons/person7.webp";
-import person8 from "@/assets/persons/person8.webp";
+import { PERSON_IMAGES } from "@/config/cloudinary";
 import coverAudioUrl from "@/assets/coverpage.mp3";
 
 export interface PersonItem {
@@ -60,16 +53,7 @@ export const pageInteractions: PageInteractionsConfig = {
   page11: {
     modalTitle: "হোমিওপ্যাথি নিয়ে মনীষীদের অভিব্যক্তি",
     modalSubtitle: "হোমিওপ্যাথি সম্পর্কে বিশ্ববরেণ্য মনীষীদের মূল্যবান মতামত ও বক্তব্য",
-    persons: [
-      { id: 1, imageUrl: person1 },
-      { id: 2, imageUrl: person2 },
-      { id: 3, imageUrl: person3 },
-      { id: 4, imageUrl: person4 },
-      { id: 5, imageUrl: person5 },
-      { id: 6, imageUrl: person6 },
-      { id: 7, imageUrl: person7 },
-      { id: 8, imageUrl: person8 },
-    ],
+    persons: PERSON_IMAGES.map((imageUrl, index) => ({ id: index + 1, imageUrl })),
   },
   page20: {
     audio: {

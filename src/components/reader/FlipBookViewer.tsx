@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BookPage } from "./BookPage";
+import { BookPage, PAGE_ART_MAP } from "./BookPage";
 import { FpsMeter } from "./FpsMeter";
 import { PageIndexDropdown } from "./PageIndexDropdown";
 import { useRiffleJump, type PageFlipLike } from "./useRiffleJump";
@@ -403,9 +403,11 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     if (typeof window === "undefined") return;
     for (let d = -PRELOAD_RADIUS; d <= PRELOAD_RADIUS; d += 1) {
       const page = pages[currentPage - 1 + d];
-      if (page?.backgroundImageUrl) {
+      const art = page ? PAGE_ART_MAP[page.pageNumber] : null;
+      const src = art || page?.backgroundImageUrl;
+      if (src) {
         const img = new Image();
-        img.src = page.backgroundImageUrl;
+        img.src = src;
       }
     }
   }, [currentPage, pages]);

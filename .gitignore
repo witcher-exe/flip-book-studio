@@ -20,6 +20,17 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Cloudinary upload staging (images are hosted on Cloudinary, not GitHub)
+cloudinary-upload/
+
+# Source image assets are hosted on Cloudinary — never commit them
+src/assets/**/*.webp
+src/assets/**/*.svg
+src/assets/**/*.png
+src/assets/**/*.jpg
+src/assets/**/*.jpeg
+src/assets/**/*.gif
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

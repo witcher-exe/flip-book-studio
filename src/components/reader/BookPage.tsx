@@ -2,57 +2,14 @@ import { forwardRef, memo, type ReactNode } from "react";
 
 import { sanitizeHtml } from "@/lib/sanitize-html";
 import type { PageDTO } from "@/lib/magazine.types";
-import coverArt from "@/assets/cover.webp";
-import page1Art from "@/assets/page1.webp";
-import page2Art from "@/assets/page2.webp";
-import prefaceArt from "@/assets/preface-pg.webp";
-import presidentArt from "@/assets/president-ziaur-rahman-s-pg.webp";
-import govHealthArt from "@/assets/government-health-policy-homeopathy-front-pg.webp";
-import organonArt from "@/assets/organon-magazine.webp";
-import page8Art from "@/assets/page8.webp";
-import kidsHealth1Art from "@/assets/kids-health-front-pg.webp";
-import kidsHealth2Art from "@/assets/kids-health-second-pg.webp";
-import page11Art from "@/assets/page11.webp";
-import womanHealth1Art from "@/assets/woman-health-front-pg.webp";
-import womanHealth2Art from "@/assets/woman-health-second-pg.webp";
-import technologyArt from "@/assets/technology-homeo-pg.webp";
-import exerciseArt from "@/assets/exercise-page.webp";
-import adSoftwareArt from "@/assets/ad-page-homeo-software-coming-sooner-pg.webp";
-import page20Art from "@/assets/page20.webp";
-import page30Art from "@/assets/page30.webp";
-import page32Art from "@/assets/page32.webp";
-import page33Art from "@/assets/page33.webp";
-import page34Art from "@/assets/page34.webp";
-import backCoverArt from "@/assets/back_cover.webp";
+import { BACK_COVER_ART, PAGE_ART_MAP } from "@/config/cloudinary";
 import {
   CoverPageButtons,
   Page11Overlay,
   Page20AudioOverlay,
 } from "./InteractiveOverlays";
 
-const PAGE_ART_MAP: Record<number, string> = {
-  1: coverArt,
-  2: page1Art,
-  3: page2Art,
-  4: prefaceArt,
-  5: presidentArt,
-  6: govHealthArt,
-  7: organonArt,
-  8: page8Art,
-  9: kidsHealth1Art,
-  10: kidsHealth2Art,
-  11: page11Art,
-  12: womanHealth1Art,
-  13: womanHealth2Art,
-  14: technologyArt,
-  15: exerciseArt,
-  16: adSoftwareArt,
-  20: page20Art,
-  30: page30Art,
-  32: page32Art,
-  33: page33Art,
-  34: page34Art,
-};
+export { PAGE_ART_MAP };
 
 function XrefButton({
   anchorText,
@@ -169,7 +126,7 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
 
   const isFrontCover = isCover && page.pageNumber === 1;
   const isBackCover = isCover && page.pageNumber === totalPages;
-  const pageArt = isBackCover ? backCoverArt : PAGE_ART_MAP[page.pageNumber];
+  const pageArt = isBackCover ? BACK_COVER_ART : PAGE_ART_MAP[page.pageNumber];
 
   if (pageArt) {
     return (
