@@ -76,11 +76,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      },
       { title: "Homeopathy Bangladesh — Digital Flip-Book Magazine" },
       {
         name: "description",
-        content: "Homeopathy Bangladesh — Because Bangladesh First. An interactive digital flip-book magazine.",
+        content:
+          "Homeopathy Bangladesh — Because Bangladesh First. An interactive digital flip-book magazine.",
       },
       { property: "og:title", content: "Homeopathy Bangladesh" },
       { property: "og:type", content: "website" },
@@ -97,11 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", sizes: "any" },
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "icon", href: "/favicon.ico?v=3", sizes: "any" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=3" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png?v=3" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16.png?v=3" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=3" },
     ],
   }),
 
