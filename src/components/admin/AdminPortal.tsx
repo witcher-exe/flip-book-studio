@@ -9,15 +9,16 @@ import {
   PAGE_PUBLIC_IDS,
   cloudinaryImage,
   cloudinaryThumbnail,
-  publicIdForPage,
 } from "@/config/cloudinary";
 import { COVER_PAGES, GRID_PAGES, TOTAL_PAGES } from "@/config/admin";
-import { saveArtManifest, uploadPageImage } from "@/lib/cloudinary-admin";
+import { uploadPageImage } from "@/lib/cloudinary-admin";
+import { archiveAdminAsset, restoreAdminAsset, saveAdminManifest } from "@/lib/admin.functions";
 import {
   EMPTY_ART_MANIFEST,
-  isPageDeleted,
-  manifestPublicId,
-  withManifestEntry,
+  getEntry,
+  getHistory,
+  makeEntry,
+  setPageEntry,
   type ArtManifest,
 } from "@/lib/page-art";
 import { PAGE_ART_MANIFEST_QUERY_KEY, pageArtManifestQueryOptions } from "@/lib/page-art.queries";
@@ -36,77 +37,136 @@ function coverLabel(pageNumber: number): string {
   return `Page ${pageNumber}`;
 }
 
+function staticPublicId(pageNumber: number): string | undefined {
+  return pageNumber === TOTAL_PAGES ? BACK_COVER_PUBLIC_ID : PAGE_PUBLIC_IDS[pageNumber];
+}
+
 export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
   const queryClient = useQueryClient();
   const { data, isFetching, refetch } = useQuery(pageArtManifestQueryOptions());
   const manifest = data ?? EMPTY_ART_MANIFEST;
-  const [versions, setVersions] = useState<Record<number, number>>({});
-  const [lightbox, setLightbox] = useState<LightboxArt | null>(null);
+  const idToken = session.credential;
+  const [lightboxPage, setLightboxPage] = useState<number | null>(null);
+  const [busyPage, setBusyPage] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const deriveArt = useCallback(
     (pageNumber: number) => {
-      const staticId =
-        pageNumber === TOTAL_PAGES ? BACK_COVER_PUBLIC_ID : PAGE_PUBLIC_IDS[pageNumber];
-      const deleted = isPageDeleted(manifest, pageNumber);
-      const override = manifestPublicId(manifest, pageNumber);
-      const effectiveId = deleted ? undefined : (override ?? staticId);
-      const version = versions[pageNumber];
+      const entry = getEntry(manifest, pageNumber);
+      const currentId = entry ? entry.current : (staticPublicId(pageNumber) ?? null);
       return {
-        thumbSrc: effectiveId ? cloudinaryThumbnail(effectiveId, version) : null,
-        fullSrc: effectiveId ? cloudinaryImage(effectiveId, version) : null,
+        currentId,
+        thumbSrc: currentId ? cloudinaryThumbnail(currentId) : null,
+        fullSrc: currentId ? cloudinaryImage(currentId) : null,
       };
     },
-    [manifest, versions],
+    [manifest],
   );
 
-  const commitManifest = useCallback(
+  const persist = useCallback(
     async (next: ArtManifest) => {
-      await saveArtManifest(next);
-      queryClient.setQueryData(PAGE_ART_MANIFEST_QUERY_KEY, next);
+      const saved = await saveAdminManifest({ data: { idToken, manifest: next } });
+      queryClient.setQueryData(PAGE_ART_MANIFEST_QUERY_KEY, saved);
     },
+    [idToken, queryClient],
+  );
+
+  const readCurrent = useCallback(
+    () => queryClient.getQueryData<ArtManifest>(PAGE_ART_MANIFEST_QUERY_KEY) ?? EMPTY_ART_MANIFEST,
     [queryClient],
+  );
+
+  const archiveOld = useCallback(
+    async (pageNumber: number, publicId: string): Promise<string> => {
+      try {
+        const { archivedId } = await archiveAdminAsset({
+          data: { idToken, page: pageNumber, publicId },
+        });
+        return archivedId;
+      } catch {
+        // Keep the original id in history if archiving failed — nothing is lost.
+        return publicId;
+      }
+    },
+    [idToken],
   );
 
   const replaceArt = useCallback(
     async (pageNumber: number, file: File, onProgress: (fraction: number) => void) => {
+      setBusyPage(pageNumber);
       try {
-        const publicId = publicIdForPage(pageNumber, TOTAL_PAGES);
-        const uploaded = await uploadPageImage(file, publicId, onProgress);
-        setVersions((prev) => ({ ...prev, [pageNumber]: uploaded.version }));
+        const current = readCurrent();
+        const entry = getEntry(current, pageNumber);
+        const oldId = entry ? entry.current : (staticPublicId(pageNumber) ?? null);
 
-        const current =
-          queryClient.getQueryData<ArtManifest>(PAGE_ART_MANIFEST_QUERY_KEY) ?? EMPTY_ART_MANIFEST;
-        const staticId =
-          pageNumber === TOTAL_PAGES ? BACK_COVER_PUBLIC_ID : PAGE_PUBLIC_IDS[pageNumber];
-        const next = staticId
-          ? withManifestEntry(current, pageNumber, undefined)
-          : withManifestEntry(current, pageNumber, uploaded.publicId);
-
-        if (JSON.stringify(next.entries) !== JSON.stringify(current.entries)) {
-          await commitManifest(next);
-        }
+        const uploaded = await uploadPageImage(file, idToken, pageNumber, onProgress);
+        const archivedId = oldId ? await archiveOld(pageNumber, oldId) : null;
+        const history = [
+          ...(archivedId ? [archivedId] : []),
+          ...getHistory(current, pageNumber).filter((id) => id !== oldId && id !== archivedId),
+        ];
+        await persist(setPageEntry(current, pageNumber, makeEntry(uploaded.publicId, history)));
         toast.success(`${coverLabel(pageNumber)} artwork uploaded`);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Upload failed. Please try again.");
+      } finally {
+        setBusyPage(null);
       }
     },
-    [commitManifest, queryClient],
+    [archiveOld, idToken, persist, readCurrent],
   );
 
   const deleteArt = useCallback(
     async (pageNumber: number) => {
+      setBusyPage(pageNumber);
       try {
-        const current =
-          queryClient.getQueryData<ArtManifest>(PAGE_ART_MANIFEST_QUERY_KEY) ?? EMPTY_ART_MANIFEST;
-        const next = withManifestEntry(current, pageNumber, null);
-        await commitManifest(next);
-        toast.success(`${coverLabel(pageNumber)} artwork removed`);
+        const current = readCurrent();
+        const entry = getEntry(current, pageNumber);
+        const oldId = entry ? entry.current : (staticPublicId(pageNumber) ?? null);
+
+        const archivedId = oldId ? await archiveOld(pageNumber, oldId) : null;
+        const history = [
+          ...(archivedId ? [archivedId] : []),
+          ...getHistory(current, pageNumber).filter((id) => id !== oldId && id !== archivedId),
+        ];
+        await persist(setPageEntry(current, pageNumber, makeEntry(null, history)));
+        toast.success(`${coverLabel(pageNumber)} artwork removed (archived in Cloudinary)`);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Delete failed. Please try again.");
+      } finally {
+        setBusyPage(null);
       }
     },
-    [commitManifest, queryClient],
+    [archiveOld, persist, readCurrent],
+  );
+
+  const restoreArt = useCallback(
+    async (pageNumber: number, archivedId: string) => {
+      setBusyPage(pageNumber);
+      try {
+        const current = readCurrent();
+        const entry = getEntry(current, pageNumber);
+        const oldId = entry?.current ?? null;
+
+        const restored = await restoreAdminAsset({
+          data: { idToken, page: pageNumber, archivedId },
+        });
+        const archivedOld = oldId ? await archiveOld(pageNumber, oldId) : null;
+        const history = [
+          ...(archivedOld ? [archivedOld] : []),
+          ...getHistory(current, pageNumber).filter(
+            (id) => id !== archivedId && id !== oldId && id !== archivedOld,
+          ),
+        ];
+        await persist(setPageEntry(current, pageNumber, makeEntry(restored.publicId, history)));
+        toast.success(`${coverLabel(pageNumber)} restored a previous version`);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Restore failed. Please try again.");
+      } finally {
+        setBusyPage(null);
+      }
+    },
+    [archiveOld, idToken, persist, readCurrent],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -119,14 +179,22 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
     }
   }, [refetch]);
 
-  const openLightbox = useCallback(
-    (pageNumber: number) => {
-      const { fullSrc } = deriveArt(pageNumber);
-      if (!fullSrc) return;
-      setLightbox({ pageNumber, label: coverLabel(pageNumber), src: fullSrc });
-    },
-    [deriveArt],
-  );
+  const openLightbox = useCallback((pageNumber: number) => setLightboxPage(pageNumber), []);
+
+  const lightbox = useMemo<LightboxArt | null>(() => {
+    if (lightboxPage === null) return null;
+    const { fullSrc } = deriveArt(lightboxPage);
+    const history = getHistory(manifest, lightboxPage).map((id) => ({
+      id,
+      src: cloudinaryImage(id),
+    }));
+    return {
+      pageNumber: lightboxPage,
+      label: coverLabel(lightboxPage),
+      currentSrc: fullSrc,
+      history,
+    };
+  }, [deriveArt, lightboxPage, manifest]);
 
   const coverTiles = useMemo(
     () =>
@@ -142,6 +210,7 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
               label={coverLabel(pageNumber)}
               thumbSrc={thumbSrc}
               large
+              busy={busyPage === pageNumber}
               onReplace={replaceArt}
               onDelete={deleteArt}
               onOpen={openLightbox}
@@ -149,7 +218,7 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
           </div>
         );
       }),
-    [deriveArt, deleteArt, openLightbox, replaceArt],
+    [busyPage, deriveArt, deleteArt, openLightbox, replaceArt],
   );
 
   return (
@@ -208,8 +277,10 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
 
       <main className="mx-auto w-full max-w-[1600px] space-y-8 px-4 py-6">
         <p className="rounded-lg border border-border bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground">
-          Replace re-uploads over the existing Cloudinary asset (same public id) so the live book
-          updates instantly. Delete hides the artwork and falls back to the page's text layout.
+          Replace uploads a new image and moves the previous one into the Cloudinary{" "}
+          <code className="rounded bg-muted px-1 py-0.5 font-mono">past-images/</code> folder.
+          Delete hides the artwork and archives it there too — nothing is ever deleted from
+          Cloudinary. Click any tile to preview it and restore an earlier version.
         </p>
 
         <section>
@@ -233,6 +304,7 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
                   pageNumber={pageNumber}
                   label={coverLabel(pageNumber)}
                   thumbSrc={thumbSrc}
+                  busy={busyPage === pageNumber}
                   onReplace={replaceArt}
                   onDelete={deleteArt}
                   onOpen={openLightbox}
@@ -243,7 +315,12 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
         </section>
       </main>
 
-      <ArtLightbox art={lightbox} onClose={() => setLightbox(null)} />
+      <ArtLightbox
+        art={lightbox}
+        busy={busyPage !== null}
+        onClose={() => setLightboxPage(null)}
+        onRestore={restoreArt}
+      />
     </div>
   );
 }

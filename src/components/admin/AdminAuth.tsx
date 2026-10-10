@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { GOOGLE_CLIENT_ID, isAdminConfigured } from "@/config/admin";
 import { isAllowlistEnforced } from "@/lib/admin-session";
 import { initializeGoogleSignIn, renderGoogleButton } from "@/lib/google-identity";
@@ -9,7 +8,6 @@ import type { SignInResult } from "@/hooks/use-admin-session";
 
 interface AdminAuthProps {
   onCredential: (credential: string) => SignInResult;
-  onDevSignIn: () => void;
 }
 
 function SetupNotice() {
@@ -41,22 +39,24 @@ function SetupNotice() {
           Add each beta tester Gmail as a <strong>Test user</strong> on the OAuth consent screen.
         </li>
         <li>
-          Create two unsigned Cloudinary upload presets:{" "}
+          In Cloudinary, copy the <strong>API key</strong> and <strong>API secret</strong>, then add
+          them as environment variables named{" "}
           <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-            flipbook-admin-images
+            CLOUDINARY_API_KEY
           </code>{" "}
           and{" "}
           <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-            flipbook-admin-raw
-          </code>
-          .
+            CLOUDINARY_API_SECRET
+          </code>{" "}
+          (Cloudflare Pages settings, and a local{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">.env</code> for dev).
         </li>
       </ol>
     </div>
   );
 }
 
-export function AdminAuth({ onCredential, onDevSignIn }: AdminAuthProps) {
+export function AdminAuth({ onCredential }: AdminAuthProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const configured = isAdminConfigured();
@@ -121,12 +121,6 @@ export function AdminAuth({ onCredential, onDevSignIn }: AdminAuthProps) {
       ) : (
         <SetupNotice />
       )}
-
-      {import.meta.env.DEV ? (
-        <Button variant="ghost" size="sm" className="mt-6 text-xs" onClick={onDevSignIn}>
-          Continue as dev admin
-        </Button>
-      ) : null}
     </div>
   );
 }

@@ -2,11 +2,15 @@
 // Admin portal configuration (`/admin-r`)
 // ============================================================================
 //
-// This portal is fully serverless. It uses:
+// The portal uses:
 //   - Google Identity Services for sign-in (client ID + Gmail allowlist below).
-//   - Cloudinary *unsigned* upload presets to upload/replace artwork directly
-//     from the browser, and a small JSON "manifest" (also stored on Cloudinary)
-//     to record added / deleted pages so the public book picks them up.
+//   - Cloudinary *signed* uploads. The Cloudinary API secret is never sent to
+//     the browser: a tiny server function (running on Cloudflare Pages) verifies
+//     the Google credential, then signs the upload / rename / manifest-write.
+//   - A small JSON "manifest" (stored on Cloudinary as a raw asset) that records
+//     each page's current artwork plus its archived versions. Replaced/deleted
+//     images are MOVED to the `past-images/` folder (never deleted), so they can
+//     be restored from the admin portal.
 //
 // ---------------------------------------------------------------------------
 // ONE-TIME SETUP
@@ -21,13 +25,13 @@
 //    - While the OAuth consent screen is in "Testing", add every beta tester
 //      Gmail address as a "Test user", otherwise Google blocks their sign-in.
 //
-// 2) Cloudinary (https://console.cloudinary.com/ -> Settings -> Upload):
-//    - Create an UNSIGNED upload preset named `flipbook-admin-images`:
-//         Signing mode: Unsigned
-//         "Use filename or externally defined Public ID": enabled
-//         "Disallow uploads that overwrite existing assets": DISABLED
-//    - Create an UNSIGNED upload preset named `flipbook-admin-raw`
-//      (resource type RAW) with the same two options enabled.
+// 2) Cloudinary (https://console.cloudinary.com/ -> Settings -> API Keys):
+//    - Copy the API key and API secret. Add them as Cloudflare Pages environment
+//      variables (Settings -> Environment variables) named CLOUDINARY_API_KEY and
+//      CLOUDINARY_API_SECRET. For local dev, put the same two values in a `.env`
+//      file (never commit it).
+//    - No upload presets are required. The `past-images/` archive folder is
+//      created automatically the first time an image is archived.
 //
 // ---------------------------------------------------------------------------
 // ADMIN ACCESS
@@ -39,6 +43,8 @@
 //     accepts whoever Google issues a token to.
 //   - Strict: once the OAuth app is published, list the admin Gmails in
 //     ADMIN_ALLOWLIST_EMAILS so the portal stays closed to everyone else.
+//     IMPORTANT: keep the app in "Testing" or fill this list, otherwise any
+//     Google account could request signed uploads.
 // ============================================================================
 
 /** Google OAuth Web Client ID from Google Cloud Console. */
@@ -60,9 +66,8 @@ export const ADMIN_ALLOWLIST_EMAILS: string[] = [
   // "your.beta.tester@gmail.com",
 ];
 
-/** Unsigned Cloudinary presets (see setup notes above). */
-export const CLOUDINARY_UPLOAD_PRESET_IMAGES = "flipbook-admin-images";
-export const CLOUDINARY_UPLOAD_PRESET_RAW = "flipbook-admin-raw";
+/** Cloudinary folder that archived (replaced/deleted) artwork is moved into. */
+export const ADMIN_ARCHIVE_FOLDER = "past-images";
 
 /** Cloudinary raw public_id (with extension) holding the page-art manifest. */
 export const PAGE_ART_MANIFEST_PUBLIC_ID = "page-art-manifest.json";

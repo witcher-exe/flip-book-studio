@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_ALLOWLIST_EMAILS } from "@/config/admin";
 import {
   clearAdminSession,
   readAdminSession,
@@ -20,8 +19,6 @@ export interface UseAdminSession {
   hydrated: boolean;
   signInWithCredential: (credential: string) => SignInResult;
   signOut: () => void;
-  /** Dev-only shortcut so the portal can be previewed without Google setup. */
-  devSignIn: () => void;
 }
 
 export function useAdminSession(): UseAdminSession {
@@ -47,18 +44,5 @@ export function useAdminSession(): UseAdminSession {
     setSession(null);
   }, []);
 
-  const devSignIn = useCallback(() => {
-    const email = ADMIN_ALLOWLIST_EMAILS[0] ?? "dev.admin@gmail.com";
-    const fake: AdminSession = {
-      email,
-      name: "Dev Admin",
-      picture: null,
-      sub: "dev",
-      credential: "dev",
-      signedInAt: Date.now(),
-    };
-    setSession(fake);
-  }, []);
-
-  return { session, hydrated, signInWithCredential, signOut, devSignIn };
+  return { session, hydrated, signInWithCredential, signOut };
 }

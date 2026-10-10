@@ -1,13 +1,7 @@
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_FOLDER } from "@/config/cloudinary";
-import {
-  CLOUDINARY_UPLOAD_PRESET_IMAGES,
-  CLOUDINARY_UPLOAD_PRESET_RAW,
-  PAGE_ART_MANIFEST_PUBLIC_ID,
-} from "@/config/admin";
-import type { ArtManifest } from "./page-art";
+import { CLOUDINARY_CLOUD_NAME } from "@/config/cloudinary";
+import { signAdminUpload } from "./admin.functions";
 
 const IMAGE_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-const RAW_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`;
 
 export interface UploadedArtwork {
   publicId: string;
@@ -22,67 +16,64 @@ function cloudinaryError(body: string): Error {
   } catch {
     /* fall through */
   }
-  return new Error("Cloudinary rejected the upload. Check your unsigned preset setup.");
+  return new Error("Cloudinary rejected the upload. Please try again.");
 }
 
 /**
- * Uploads (or replaces) a page artwork directly to Cloudinary using the signed
- * out unsigned preset. Passing the existing public_id with overwrite reuses the
- * same asset the reader already points at.
+ * Uploads page artwork directly to Cloudinary. The API secret never reaches the
+ * browser — a server function verifies the admin and returns a short-lived
+ * signature for a single, server-chosen public id.
  */
 export function uploadPageImage(
   file: File,
-  publicId: string,
+  idToken: string,
+  page: number,
   onProgress?: (fraction: number) => void,
 ): Promise<UploadedArtwork> {
   return new Promise((resolve, reject) => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("upload_preset", CLOUDINARY_UPLOAD_PRESET_IMAGES);
-    form.append("public_id", publicId);
-    form.append("overwrite", "true");
-    if (CLOUDINARY_FOLDER) form.append("folder", CLOUDINARY_FOLDER);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", IMAGE_UPLOAD_URL);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) onProgress(event.loaded / event.total);
-    };
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const data = JSON.parse(xhr.responseText) as {
-            public_id: string;
-            version: number;
-            secure_url: string;
-          };
-          resolve({
-            publicId: data.public_id,
-            version: data.version,
-            secureUrl: data.secure_url,
-          });
-        } catch {
-          reject(new Error("Unexpected response from Cloudinary."));
-        }
-      } else {
-        reject(cloudinaryError(xhr.responseText));
+    void (async () => {
+      let signed: Awaited<ReturnType<typeof signAdminUpload>>;
+      try {
+        signed = await signAdminUpload({ data: { idToken, page } });
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error("Could not start the upload."));
+        return;
       }
-    };
-    xhr.onerror = () => reject(new Error("Network error while uploading to Cloudinary."));
-    xhr.send(form);
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("public_id", signed.publicId);
+      form.append("timestamp", String(signed.timestamp));
+      form.append("api_key", signed.apiKey);
+      form.append("signature", signed.signature);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", IMAGE_UPLOAD_URL);
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) onProgress(event.loaded / event.total);
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText) as {
+              public_id: string;
+              version: number;
+              secure_url: string;
+            };
+            resolve({
+              publicId: data.public_id,
+              version: data.version,
+              secureUrl: data.secure_url,
+            });
+          } catch {
+            reject(new Error("Unexpected response from Cloudinary."));
+          }
+        } else {
+          reject(cloudinaryError(xhr.responseText));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Network error while uploading to Cloudinary."));
+      xhr.send(form);
+    })();
   });
-}
-
-/** Overwrites the raw JSON manifest on Cloudinary so the reader sees the change. */
-export async function saveArtManifest(manifest: ArtManifest): Promise<void> {
-  const body = new Blob([JSON.stringify(manifest)], { type: "application/json" });
-  const form = new FormData();
-  form.append("file", body, PAGE_ART_MANIFEST_PUBLIC_ID);
-  form.append("upload_preset", CLOUDINARY_UPLOAD_PRESET_RAW);
-  form.append("public_id", PAGE_ART_MANIFEST_PUBLIC_ID);
-  form.append("overwrite", "true");
-  if (CLOUDINARY_FOLDER) form.append("folder", CLOUDINARY_FOLDER);
-
-  const res = await fetch(RAW_UPLOAD_URL, { method: "POST", body: form });
-  if (!res.ok) throw cloudinaryError(await res.text());
 }

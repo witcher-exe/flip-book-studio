@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin-r")({
 });
 
 function AdminRoute() {
-  const { session, hydrated, signInWithCredential, signOut, devSignIn } = useAdminSession();
+  const { session, hydrated, signInWithCredential, signOut } = useAdminSession();
 
   return (
     <>
@@ -25,7 +25,7 @@ function AdminRoute() {
       ) : session ? (
         <AdminPortal session={session} onSignOut={signOut} />
       ) : (
-        <AdminAuth onCredential={signInWithCredential} onDevSignIn={devSignIn} />
+        <AdminAuth onCredential={signInWithCredential} />
       )}
       <Toaster position="top-center" />
     </>

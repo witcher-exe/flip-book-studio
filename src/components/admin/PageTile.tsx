@@ -160,8 +160,9 @@ export function PageTile({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {label} artwork?</AlertDialogTitle>
             <AlertDialogDescription>
-              The page will fall back to its text layout. The original image stays safely in your
-              Cloudinary library, so you can add it back later.
+              The page will fall back to its text layout. The image is moved to the Cloudinary{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">past-images/</code>{" "}
+              folder (never deleted), so you can restore it any time from the page preview.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
