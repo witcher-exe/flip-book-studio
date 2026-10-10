@@ -52,18 +52,19 @@ export const GOOGLE_CLIENT_ID =
   "1000032286475-crtci669k5k7e98vnsdtnmknf645ujk5.apps.googleusercontent.com";
 
 /**
- * Optional hard allowlist of Gmail addresses.
+ * Hard allowlist of Gmail addresses allowed into the admin portal.
  *
- * Leave this EMPTY to let Google Cloud Console decide who may sign in:
- * while the OAuth consent screen is in "Testing", only the accounts listed
- * under Google Auth Platform -> Audience -> Test users can obtain a token,
- * and this portal accepts them automatically.
+ * The server refuses any Google ID token whose email is not listed here, so
+ * this is the final gate even if the OAuth consent screen is ever published
+ * (or Google's "Testing" restriction changes). Keep this in sync with the
+ * "Test users" list in Google Cloud Console while the app is in Testing mode.
  *
- * Once you PUBLISH the OAuth app (consent screen -> Publish app), add the
- * admin Gmail addresses here so the portal stays locked to just those people.
+ * NOTE: Google still blocks token issuance while the consent screen is in
+ * "Testing" unless the account is also listed as a Test user — both must agree.
  */
 export const ADMIN_ALLOWLIST_EMAILS: string[] = [
-  // "your.beta.tester@gmail.com",
+  "contact.homeobd@gmail.com",
+  "tawhidit3@gmail.com",
 ];
 
 /** Cloudinary folder that archived (replaced/deleted) artwork is moved into. */
