@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRRouteImport } from './routes/admin-r'
 import { Route as ReadIssueIdRouteImport } from './routes/read.$issueId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRRoute = AdminRRouteImport.update({
+  id: '/admin-r',
+  path: '/admin-r',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReadIssueIdRoute = ReadIssueIdRouteImport.update({
@@ -25,27 +31,31 @@ const ReadIssueIdRoute = ReadIssueIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-r': typeof AdminRRoute
   '/read/$issueId': typeof ReadIssueIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-r': typeof AdminRRoute
   '/read/$issueId': typeof ReadIssueIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin-r': typeof AdminRRoute
   '/read/$issueId': typeof ReadIssueIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/read/$issueId'
+  fullPaths: '/' | '/admin-r' | '/read/$issueId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/read/$issueId'
-  id: '__root__' | '/' | '/read/$issueId'
+  to: '/' | '/admin-r' | '/read/$issueId'
+  id: '__root__' | '/' | '/admin-r' | '/read/$issueId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRRoute: typeof AdminRRoute
   ReadIssueIdRoute: typeof ReadIssueIdRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-r': {
+      id: '/admin-r'
+      path: '/admin-r'
+      fullPath: '/admin-r'
+      preLoaderRoute: typeof AdminRRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/read/$issueId': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRRoute: AdminRRoute,
   ReadIssueIdRoute: ReadIssueIdRoute,
 }
 export const routeTree = rootRouteImport

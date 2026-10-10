@@ -2,12 +2,9 @@ import { forwardRef, memo, type ReactNode } from "react";
 
 import { sanitizeHtml } from "@/lib/sanitize-html";
 import type { PageDTO } from "@/lib/magazine.types";
-import { BACK_COVER_ART, PAGE_ART_MAP } from "@/config/cloudinary";
-import {
-  CoverPageButtons,
-  Page11Overlay,
-  Page20AudioOverlay,
-} from "./InteractiveOverlays";
+import { PAGE_ART_MAP } from "@/config/cloudinary";
+import { resolvePageArt, type ArtManifest } from "@/lib/page-art";
+import { CoverPageButtons, Page11Overlay, Page20AudioOverlay } from "./InteractiveOverlays";
 
 export { PAGE_ART_MAP };
 
@@ -94,7 +91,6 @@ function renderContentWithRefs(
   return nodes;
 }
 
-
 export interface BookPageProps {
   page: PageDTO;
   totalPages: number;
@@ -102,18 +98,24 @@ export interface BookPageProps {
   /** Full fidelity content, or an ultra-light placeholder while far off-screen / riffling. */
   detail: "full" | "light";
   isCover: boolean;
+  /** Admin overrides (added / deleted artwork) layered over the static map. */
+  artManifest?: ArtManifest | null;
   onJump: (pageNumber: number) => void;
 }
 
 const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPage(
-  { page, totalPages, issueTitle, detail, isCover, onJump },
+  { page, totalPages, issueTitle, detail, isCover, artManifest, onJump },
   ref,
 ) {
   const background = page.backgroundImageUrl;
 
   if (detail === "light") {
     return (
-      <div className="book-page book-page--light" ref={ref} data-density={isCover ? "hard" : "soft"}>
+      <div
+        className="book-page book-page--light"
+        ref={ref}
+        data-density={isCover ? "hard" : "soft"}
+      >
         <div className="book-page__surface book-page__surface--light">
           {page.thumbnailUrl ? (
             <img src={page.thumbnailUrl} alt="" aria-hidden="true" loading="lazy" />
@@ -125,8 +127,7 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
   }
 
   const isFrontCover = isCover && page.pageNumber === 1;
-  const isBackCover = isCover && page.pageNumber === totalPages;
-  const pageArt = isBackCover ? BACK_COVER_ART : PAGE_ART_MAP[page.pageNumber];
+  const pageArt = resolvePageArt(page.pageNumber, totalPages, artManifest);
 
   if (pageArt) {
     return (
@@ -151,7 +152,13 @@ const BookPageInner = forwardRef<HTMLDivElement, BookPageProps>(function BookPag
         aria-label={`Page ${page.pageNumber} of ${totalPages}: ${page.title}`}
       >
         {background ? (
-          <img className="book-page__bg" src={background} alt="" aria-hidden="true" loading="lazy" />
+          <img
+            className="book-page__bg"
+            src={background}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+          />
         ) : null}
 
         <div className="book-page__body">
