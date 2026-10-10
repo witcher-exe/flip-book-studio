@@ -41,6 +41,10 @@ function staticPublicId(pageNumber: number): string | undefined {
   return pageNumber === TOTAL_PAGES ? BACK_COVER_PUBLIC_ID : PAGE_PUBLIC_IDS[pageNumber];
 }
 
+function isWebpFile(file: File): boolean {
+  return file.type === "image/webp" || /\.webp$/i.test(file.name);
+}
+
 export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
   const queryClient = useQueryClient();
   const { data, isFetching, refetch } = useQuery(pageArtManifestQueryOptions());
@@ -93,6 +97,10 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
 
   const replaceArt = useCallback(
     async (pageNumber: number, file: File, onProgress: (fraction: number) => void) => {
+      if (!isWebpFile(file)) {
+        toast.error("Only .webp images are allowed. Please convert the image and try again.");
+        return;
+      }
       setBusyPage(pageNumber);
       try {
         const current = readCurrent();
@@ -280,7 +288,8 @@ export function AdminPortal({ session, onSignOut }: AdminPortalProps) {
           Replace uploads a new image and moves the previous one into the Cloudinary{" "}
           <code className="rounded bg-muted px-1 py-0.5 font-mono">past-images/</code> folder.
           Delete hides the artwork and archives it there too — nothing is ever deleted from
-          Cloudinary. Click any tile to preview it and restore an earlier version.
+          Cloudinary. Click any tile to preview it and restore an earlier version.{" "}
+          <strong>Only .webp images are accepted.</strong>
         </p>
 
         <section>

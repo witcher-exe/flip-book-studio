@@ -4,10 +4,14 @@ export type RifflePhase = "idle" | "accelerate" | "cruise" | "decelerate";
 
 export interface PageFlipLike {
   turnToPage: (index: number) => void;
+  turnToPrevPage?: () => void;
+  turnToNextPage?: () => void;
   flip: (index: number) => void;
   flipNext: () => void;
   flipPrev: () => void;
   getCurrentPageIndex: () => number;
+  getSettings?: () => { disableFlipByClick?: boolean };
+  getState?: () => string;
 }
 
 const MAX_STEPS = 40;

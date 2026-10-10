@@ -65,6 +65,7 @@ export const GOOGLE_CLIENT_ID =
 export const ADMIN_ALLOWLIST_EMAILS: string[] = [
   "contact.homeobd@gmail.com",
   "tawhidit3@gmail.com",
+  "muhitranahomeo@gmail.com",
 ];
 
 /** Cloudinary folder that archived (replaced/deleted) artwork is moved into. */

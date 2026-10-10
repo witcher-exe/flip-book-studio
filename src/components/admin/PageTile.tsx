@@ -153,7 +153,13 @@ export function PageTile({
         </Button>
       )}
 
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".webp,image/webp"
+        className="hidden"
+        onChange={handleFile}
+      />
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>

@@ -31,6 +31,10 @@ export function uploadPageImage(
   onProgress?: (fraction: number) => void,
 ): Promise<UploadedArtwork> {
   return new Promise((resolve, reject) => {
+    if (file.type !== "image/webp" && !/\.webp$/i.test(file.name)) {
+      reject(new Error("Only .webp images are allowed."));
+      return;
+    }
     void (async () => {
       let signed: Awaited<ReturnType<typeof signAdminUpload>>;
       try {

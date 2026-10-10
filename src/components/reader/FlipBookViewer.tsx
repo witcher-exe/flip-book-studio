@@ -301,41 +301,66 @@ export function FlipBookViewer({ issue, pages }: IssueWithPagesDTO) {
     }
   }, []);
 
+  /**
+   * Runs an animated programmatic flip (flipPrev/flipNext). page-flip gates
+   * those calls on a corner-hotspot test when `disableFlipByClick` is on, and
+   * the previous-page trigger point never lands on a corner — so the button and
+   * swipe would silently do nothing. Lift the gate only for the duration of the
+   * call, then restore it. Returns true only if the flip actually started, so
+   * callers can fall back to the ungated `turnToPrev/NextPage` API otherwise.
+   */
+  const runAnimatedFlip = useCallback(
+    (direction: "prev" | "next"): boolean => {
+      const flip = getFlip();
+      if (!flip) return false;
+
+      const settings = flip.getSettings?.();
+      const gate = settings?.disableFlipByClick;
+      if (!settings || typeof gate !== "boolean") return false;
+
+      settings.disableFlipByClick = false;
+      try {
+        if (direction === "prev") flip.flipPrev();
+        else flip.flipNext();
+      } catch {
+        return false;
+      } finally {
+        settings.disableFlipByClick = gate;
+      }
+      // flip() sets state to "flipping" synchronously once start() succeeds;
+      // if it no-ops (e.g. already at the first/last page) it stays "read".
+      return flip.getState?.() === "flipping";
+    },
+    [getFlip],
+  );
+
   const flipPrevSafe = useCallback(() => {
+    if (runAnimatedFlip("prev")) return;
+
     const flip = getFlip();
     if (!flip) return;
-
     try {
-      flip.flipPrev();
-      return;
-    } catch {}
-
-    try {
-      (flip as any).turnToPrevPage?.();
+      flip.turnToPrevPage?.();
     } catch {
       try {
-        (flip as any).turnToPage?.(Math.max(0, currentPage - 2));
+        flip.turnToPage(Math.max(0, currentPage - 2));
       } catch {}
     }
-  }, [currentPage, getFlip]);
+  }, [currentPage, getFlip, runAnimatedFlip]);
 
   const flipNextSafe = useCallback(() => {
+    if (runAnimatedFlip("next")) return;
+
     const flip = getFlip();
     if (!flip) return;
-
     try {
-      flip.flipNext();
-      return;
-    } catch {}
-
-    try {
-      (flip as any).turnToNextPage?.();
+      flip.turnToNextPage?.();
     } catch {
       try {
-        (flip as any).turnToPage?.(Math.min(totalPages - 1, currentPage));
+        flip.turnToPage(Math.min(totalPages - 1, currentPage));
       } catch {}
     }
-  }, [currentPage, getFlip, totalPages]);
+  }, [currentPage, getFlip, runAnimatedFlip, totalPages]);
 
   const { jumpToPage, phase, isRiffling } = useRiffleJump(getFlip, totalPages, (n) => {
     setCurrentPage(n);

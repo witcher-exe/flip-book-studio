@@ -18,6 +18,7 @@ dedicated, throwaway Google Cloud account.
 - **Allowlist (`src/config/admin.ts` → `ADMIN_ALLOWLIST_EMAILS`):**
   - `contact.homeobd@gmail.com`
   - `tawhidit3@gmail.com`
+  - `muhitranahomeo@gmail.com`
   - The server rejects any token not in this list — the final gate even if
     Google's "Testing" mode ever changes.
 - **Cloudinary:** signed uploads only. The API secret lives in
